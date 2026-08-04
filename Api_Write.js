@@ -212,6 +212,12 @@ function deleteTransaction(transactionId) {
     const deleted = Repository_Sheets.deleteRowByTransactionId(txId);
     
     if (deleted) {
+      // CLEAR CACHE so the deleted item won't show up in frontend
+      try {
+        Repository_Cache.invalidateAll();
+      } catch (cacheErr) {
+        Logger.log('Cache invalidation failed: ' + cacheErr);
+      }
       return Util_Response.buildSuccess({ message: 'ลบรายการสำเร็จ' });
     } else {
       return Util_Response.buildError('SERVER_ERROR', 'เกิดข้อผิดพลาดในการลบรายการบนฐานข้อมูล');
