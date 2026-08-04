@@ -15,11 +15,11 @@ window.TripCardComponent = {
   /**
    * Renders HTML markup for a single Trip Card.
    */
-  renderCardHtml: function(trip, index, totalCards, activeRoutes, selectedSiteId) {
+  renderCardHtml: function(trip, index, totalCards, activeRoutes, selectedSiteId, isEditLocked) {
     var tripNum = index + 1;
     var isFix = trip.type === 'FIX';
     var isRoundTrip = trip.trip_type === 'ROUND_TRIP';
-    var showDelete = totalCards > 1;
+    var showDelete = !isEditLocked;
 
     // Filter active routes by selectedSiteId
     var filteredRoutes = [];

@@ -560,11 +560,11 @@ window.TripCardComponent = {
     return 't-' + Math.random().toString(36).substring(2, 9);
   },
 
-  renderCardHtml: function(trip, index, totalCards, activeRoutes, selectedSiteId) {
+  renderCardHtml: function(trip, index, totalCards, activeRoutes, selectedSiteId, isEditLocked) {
     var tripNum = index + 1;
     var isFix = trip.type === 'FIX';
     var isRoundTrip = trip.trip_type === 'ROUND_TRIP';
-    var showDelete = totalCards > 1;
+    var showDelete = !isEditLocked;
 
     var filteredRoutes = [];
     if (selectedSiteId) {
@@ -808,10 +808,11 @@ window.TripFormComponent = {
     var master = window.AppState.masterData || {};
     var routes = master.masterRoutes || [];
     var siteId = window.AppState.selectedSiteId;
+    var isEditLocked = window.AppState.currentTransactionStatus === 'APPROVED';
 
     var html = '';
     for (var i = 0; i < trips.length; i++) {
-      html += window.TripCardComponent.renderCardHtml(trips[i], i, trips.length, routes, siteId);
+      html += window.TripCardComponent.renderCardHtml(trips[i], i, trips.length, routes, siteId, isEditLocked);
     }
     container.innerHTML = html;
 
