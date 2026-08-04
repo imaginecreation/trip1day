@@ -484,7 +484,11 @@ window.ApiClient = {
       if (timeoutId) clearTimeout(timeoutId);
       return res.text().then(function(text) {
         try { return JSON.parse(text); }
-        catch (e) { return { success: false, error_code: 'PARSE_ERROR', message: 'เซิร์ฟเวอร์ส่งข้อมูลผิดรูปแบบ กรุณาลองใหม่' }; }
+        catch (e) { 
+          var preview = text.substring(0, 150).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          console.error('PARSE_ERROR', preview);
+          return { success: false, error_code: 'PARSE_ERROR', message: 'เซิร์ฟเวอร์ส่งข้อมูลผิดรูปแบบ (Preview: ' + preview + '...)' }; 
+        }
       });
     })
     .catch(function(err) {
