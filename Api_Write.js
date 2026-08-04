@@ -214,7 +214,7 @@ function deleteTransaction(transactionId) {
     if (deleted) {
       // CLEAR CACHE so the deleted item won't show up in frontend
       try {
-        Repository_Cache.invalidateAll();
+        Repository_Cache.clearCache('TRANSACTIONS_ALL');
       } catch (cacheErr) {
         Logger.log('Cache invalidation failed: ' + cacheErr);
       }
