@@ -1,88 +1,119 @@
 <script>
 /**
- * Js_ApiClient.html — Unified API Client (Supports both google.script.run and HTTP fetch for GitHub Pages)
+ * Js_ApiClient.html — Unified API Client with Timeout & Retry
  * Mileage Reimbursement System (v10.1)
+ * 
+ * Fixes: GAS cold-start timeout, LINE LIFF WebView fetch failures,
+ *        and proper redirect handling for script.google.com → script.googleusercontent.com
  */
 
 window.ApiClient = {
+  TIMEOUT_MS: 30000,  // 30 seconds (GAS max execution = 30s)
+  MAX_RETRIES: 1,     // Retry once on network failure
+
   /**
-   * Invokes backend action via HTTP fetch (GitHub Pages mode) or google.script.run (GAS native mode).
+   * Main entry point. Routes to fetch (GitHub Pages) or google.script.run (GAS native).
    */
   call: function(functionName) {
     var args = Array.prototype.slice.call(arguments, 1);
-    var payloadData = args.length === 1 ? args[0] : args;
+    // Always wrap as single object for fetch mode
+    var payloadData = args.length === 1 ? args[0] : { args: args };
 
-    // Mode 1: GitHub Pages / External mode (if window.GAS_API_URL is configured)
+    // Mode 1: GitHub Pages / External (fetch to GAS Web App URL)
     if (window.GAS_API_URL && window.GAS_API_URL.trim() !== '' && window.GAS_API_URL !== 'YOUR_GAS_DEPLOYED_WEB_APP_URL') {
-      return this.callFetch(functionName, payloadData);
+      return this.callFetchWithRetry(functionName, payloadData, 0);
     }
 
-    // Mode 2: GAS Native mode (google.script.run)
-    return new Promise(function(resolve, reject) {
+    // Mode 2: GAS Native (google.script.run)
+    return new Promise(function(resolve) {
       if (typeof google === 'undefined' || !google.script || !google.script.run) {
-        // Fallback to fetch if window.GAS_API_URL is present
         if (window.GAS_API_URL) {
-          resolve(window.ApiClient.callFetch(functionName, payloadData));
+          resolve(window.ApiClient.callFetchWithRetry(functionName, payloadData, 0));
         } else {
-          console.warn('ApiClient: google.script.run is unavailable and GAS_API_URL is not set.');
           resolve({ success: false, error_code: 'ENV_ERROR', message: 'กรุณาระบุ GAS_API_URL ในไฟล์ config_api.js' });
         }
         return;
       }
 
       var runner = google.script.run
-        .withSuccessHandler(function(response) {
-          resolve(response);
-        })
+        .withSuccessHandler(function(response) { resolve(response); })
         .withFailureHandler(function(error) {
           console.error('ApiClient Server Error [' + functionName + ']:', error);
-          resolve({
-            success: false,
-            error_code: 'SERVER_ERROR',
-            message: (error && error.message) ? error.message : String(error)
-          });
+          resolve({ success: false, error_code: 'SERVER_ERROR', message: (error && error.message) ? error.message : String(error) });
         });
 
       if (typeof runner[functionName] === 'function') {
         runner[functionName].apply(runner, args);
       } else {
-        console.error('ApiClient: Function ' + functionName + ' does not exist on server.');
         resolve({ success: false, error_code: 'NOT_FOUND', message: 'Function ' + functionName + ' not found' });
       }
     });
   },
 
   /**
-   * Executes HTTP POST fetch to deployed GAS Web App API endpoint.
+   * Fetch with automatic retry on network failure.
+   */
+  callFetchWithRetry: function(action, data, attempt) {
+    var self = this;
+    return this.callFetch(action, data).then(function(result) {
+      // If network error and we have retries left, retry once
+      if (result && result.error_code === 'NETWORK_ERROR' && attempt < self.MAX_RETRIES) {
+        console.warn('ApiClient: Retrying ' + action + ' (attempt ' + (attempt + 2) + ')...');
+        return self.callFetch(action, data);
+      }
+      return result;
+    });
+  },
+
+  /**
+   * Single fetch call with timeout via AbortController.
    */
   callFetch: function(action, data) {
     var apiUrl = window.GAS_API_URL;
-    
-    var requestBody = {
-      action: action,
-      data: data
-    };
+    var requestBody = { action: action, data: data };
+    var timeoutMs = this.TIMEOUT_MS;
 
-    return fetch(apiUrl, {
+    // AbortController for timeout
+    var controller = null;
+    var timeoutId = null;
+    if (typeof AbortController !== 'undefined') {
+      controller = new AbortController();
+      timeoutId = setTimeout(function() { controller.abort(); }, timeoutMs);
+    }
+
+    var fetchOptions = {
       method: 'POST',
-      headers: {
-        'Content-Type': 'text/plain;charset=utf-8' // Text/plain prevents CORS preflight OPTIONS block in GAS
-      },
-      body: JSON.stringify(requestBody)
-    })
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(requestBody),
+      redirect: 'follow'
+    };
+    if (controller) {
+      fetchOptions.signal = controller.signal;
+    }
+
+    return fetch(apiUrl, fetchOptions)
     .then(function(res) {
-      return res.json();
-    })
-    .then(function(json) {
-      return json;
+      if (timeoutId) clearTimeout(timeoutId);
+      // Check if response is OK before parsing
+      if (!res.ok && res.status !== 200) {
+        return { success: false, error_code: 'HTTP_' + res.status, message: 'Server returned HTTP ' + res.status };
+      }
+      return res.text().then(function(text) {
+        try {
+          return JSON.parse(text);
+        } catch (e) {
+          console.error('ApiClient: Non-JSON response:', text.substring(0, 200));
+          return { success: false, error_code: 'PARSE_ERROR', message: 'เซิร์ฟเวอร์ส่งข้อมูลผิดรูปแบบ กรุณาลองใหม่' };
+        }
+      });
     })
     .catch(function(err) {
-      console.error('Fetch API Error:', err);
-      return {
-        success: false,
-        error_code: 'NETWORK_ERROR',
-        message: 'ไม่สามารถเชื่อมต่อกับ GAS Web API ได้ (โปรดตรวจสอบ GAS_API_URL): ' + err.message
-      };
+      if (timeoutId) clearTimeout(timeoutId);
+      console.error('Fetch Error [' + action + ']:', err);
+      var msg = (err && err.name === 'AbortError')
+        ? 'การเชื่อมต่อหมดเวลา (' + (timeoutMs / 1000) + ' วินาที) กรุณาลองใหม่'
+        : 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้: ' + (err ? err.message : 'Unknown');
+      return { success: false, error_code: 'NETWORK_ERROR', message: msg };
     });
   }
 };

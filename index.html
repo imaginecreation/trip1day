@@ -383,20 +383,22 @@ select.form-control {
   <!-- API Client Component -->
   <script>
 window.ApiClient = {
+  TIMEOUT_MS: 30000,
+  MAX_RETRIES: 1,
+
   call: function(functionName) {
     var args = Array.prototype.slice.call(arguments, 1);
-    var payloadData = args.length === 1 ? args[0] : args;
+    var payloadData = args.length === 1 ? args[0] : { args: args };
 
     if (window.GAS_API_URL && window.GAS_API_URL.trim() !== '' && window.GAS_API_URL !== 'YOUR_GAS_DEPLOYED_WEB_APP_URL') {
-      return this.callFetch(functionName, payloadData);
+      return this.callFetchWithRetry(functionName, payloadData, 0);
     }
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function(resolve) {
       if (typeof google === 'undefined' || !google.script || !google.script.run) {
         if (window.GAS_API_URL) {
-          resolve(window.ApiClient.callFetch(functionName, payloadData));
+          resolve(window.ApiClient.callFetchWithRetry(functionName, payloadData, 0));
         } else {
-          console.warn('ApiClient: google.script.run is unavailable and GAS_API_URL is not set.');
           resolve({ success: false, error_code: 'ENV_ERROR', message: 'กรุณาระบุ GAS_API_URL ในไฟล์ config_api.js' });
         }
         return;
@@ -417,20 +419,51 @@ window.ApiClient = {
     });
   },
 
+  callFetchWithRetry: function(action, data, attempt) {
+    var self = this;
+    return this.callFetch(action, data).then(function(result) {
+      if (result && result.error_code === 'NETWORK_ERROR' && attempt < self.MAX_RETRIES) {
+        console.warn('ApiClient: Retrying ' + action + ' (attempt ' + (attempt + 2) + ')...');
+        return self.callFetch(action, data);
+      }
+      return result;
+    });
+  },
+
   callFetch: function(action, data) {
     var apiUrl = window.GAS_API_URL;
     var requestBody = { action: action, data: data };
+    var timeoutMs = this.TIMEOUT_MS;
 
-    return fetch(apiUrl, {
+    var controller = null;
+    var timeoutId = null;
+    if (typeof AbortController !== 'undefined') {
+      controller = new AbortController();
+      timeoutId = setTimeout(function() { controller.abort(); }, timeoutMs);
+    }
+
+    var fetchOptions = {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify(requestBody),
+      redirect: 'follow'
+    };
+    if (controller) fetchOptions.signal = controller.signal;
+
+    return fetch(apiUrl, fetchOptions)
+    .then(function(res) {
+      if (timeoutId) clearTimeout(timeoutId);
+      return res.text().then(function(text) {
+        try { return JSON.parse(text); }
+        catch (e) { return { success: false, error_code: 'PARSE_ERROR', message: 'เซิร์ฟเวอร์ส่งข้อมูลผิดรูปแบบ กรุณาลองใหม่' }; }
+      });
     })
-    .then(function(res) { return res.json(); })
-    .then(function(json) { return json; })
     .catch(function(err) {
-      console.error('Fetch API Error:', err);
-      return { success: false, error_code: 'NETWORK_ERROR', message: 'ไม่สามารถเชื่อมต่อกับ GAS Web API ได้ (โปรดตรวจสอบ GAS_API_URL): ' + err.message };
+      if (timeoutId) clearTimeout(timeoutId);
+      var msg = (err && err.name === 'AbortError')
+        ? 'การเชื่อมต่อหมดเวลา (' + (timeoutMs / 1000) + ' วินาที) กรุณาลองใหม่'
+        : 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้: ' + (err ? err.message : 'Unknown');
+      return { success: false, error_code: 'NETWORK_ERROR', message: msg };
     });
   }
 };
@@ -923,8 +956,12 @@ window.TripFormComponent = {
         alert('✅ ' + (res.data ? res.data.message : 'บันทึกสำเร็จ'));
         window.App.navigateTo('summary_list');
       } else {
-        alert('❌ ไม่สามารถบันทึกได้ (' + (res ? res.error_code : 'ERROR') + '): ' + (res ? res.message : 'เกิดข้อผิดพลาด'));
+        alert('❌ ไม่สามารถบันทึกได้: ' + (res ? res.message : 'เกิดข้อผิดพลาด'));
       }
+    }).catch(function(err) {
+      btnSubmit.disabled = false;
+      btnSubmit.innerHTML = '💾 บันทึกข้อมูลและส่งขออนุมัติ';
+      alert('❌ เกิดข้อผิดพลาดที่ไม่คาดคิด: ' + (err ? err.message : 'Unknown'));
     });
   }
 };
