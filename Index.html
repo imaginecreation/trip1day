@@ -8,7 +8,339 @@
   <!-- Pinned LINE LIFF SDK version 2.22.4 (2026-07-31) — See Section 5.3 of Spec v10.1 -->
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
-  <?!= include('Styles_Main'); ?>
+  <!-- GitHub Pages API Config -->
+  <script src="config_api.js"></script>
+
+  <style>
+/* Modern Glassmorphism & Mobile-First Design System */
+:root {
+  --primary-color: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-light: #eef2ff;
+  --secondary-color: #0284c7;
+  --accent-color: #10b981;
+  --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  --card-bg: rgba(30, 41, 59, 0.75);
+  --card-border: rgba(255, 255, 255, 0.1);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-dark: #1e293b;
+  --danger-color: #ef4444;
+  --warning-color: #f59e0b;
+  --success-color: #10b981;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --shadow-main: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--bg-gradient);
+  background-attachment: fixed;
+  color: var(--text-main);
+  min-height: 100vh;
+  padding-bottom: 90px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.container {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.glass-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-main);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-header-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.form-group {
+  margin-bottom: 14px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(15, 23, 42, 0.6);
+  color: #fff;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-control:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.25);
+}
+
+.form-control[readonly] {
+  background: rgba(255, 255, 255, 0.05);
+  color: #cbd5e1;
+  cursor: not-allowed;
+}
+
+select.form-control {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 36px;
+}
+
+.segmented-control {
+  display: flex;
+  background: rgba(15, 23, 42, 0.8);
+  border-radius: var(--radius-md);
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.segmented-btn {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.segmented-btn.active {
+  background: var(--primary-color);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.badge-primary { background: rgba(79, 70, 229, 0.2); color: #818cf8; border: 1px solid rgba(79, 70, 229, 0.4); }
+.badge-success { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+.badge-warning { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+.badge-danger  { background: rgba(239, 68, 68, 0.2);  color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s, background-color 0.2s, box-shadow 0.2s;
+}
+
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--primary-color); color: #fff; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4); }
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-secondary { background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2); }
+.btn-danger { background: var(--danger-color); color: #fff; }
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.trip-card {
+  position: relative;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  margin-bottom: 12px;
+  transition: all 0.25s ease;
+}
+
+.trip-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.trip-number {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #38bdf8;
+}
+
+.btn-icon-del {
+  background: transparent;
+  border: none;
+  color: var(--danger-color);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.btn-icon-del:hover { background: rgba(239, 68, 68, 0.15); }
+
+.summary-box {
+  background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  color: #fff;
+  margin-bottom: 16px;
+  box-shadow: 0 8px 20px rgba(2, 132, 199, 0.3);
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 0.95rem;
+}
+
+.summary-row.total-net {
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  margin-top: 8px;
+  padding-top: 12px;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.sticky-summary-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1000;
+  box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.5);
+}
+
+.sticky-net-amount {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #38bdf8;
+}
+
+.sticky-km-amount {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-box {
+  background: #1e293b;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  width: 90%;
+  max-width: 380px;
+  padding: 22px;
+  text-align: center;
+  box-shadow: var(--shadow-main);
+}
+
+.modal-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; }
+.modal-desc { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px; }
+.modal-actions { display: flex; gap: 10px; }
+
+.inline-error {
+  color: #f87171;
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
+
+.spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 3px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 0.8s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.hint-text {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+  </style>
 </head>
 <body>
 
@@ -16,7 +348,6 @@
     <div id="app-screen-container"></div>
   </div>
 
-  <!-- Sticky Bottom Summary Bar (Form Screen only) -->
   <div id="sticky-bar" class="sticky-summary-bar" style="display: none;">
     <div>
       <div class="sticky-net-amount" id="sticky-net-amount">0.00 ฿</div>
@@ -27,7 +358,6 @@
     </button>
   </div>
 
-  <!-- Modal: Delete Trip Confirmation -->
   <div id="modal-delete-trip" class="modal-overlay">
     <div class="modal-box">
       <div class="modal-title">🗑️ ยืนยันการลบเส้นทาง</div>
@@ -39,7 +369,6 @@
     </div>
   </div>
 
-  <!-- Modal: Confirm Change Site Reset Fix Trips -->
   <div id="modal-confirm-site" class="modal-overlay">
     <div class="modal-box">
       <div class="modal-title">⚠️ ยืนยันการเปลี่ยน SITE งาน</div>
@@ -51,12 +380,804 @@
     </div>
   </div>
 
-  <?!= include('Js_ApiClient'); ?>
-  <?!= include('Js_Validation'); ?>
-  <?!= include('Js_TripCard'); ?>
-  <?!= include('Js_TripForm'); ?>
-  <?!= include('Js_DaySummaryList'); ?>
-  <?!= include('Js_App'); ?>
+  <!-- API Client Component -->
+  <script>
+window.ApiClient = {
+  call: function(functionName) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    var payloadData = args.length === 1 ? args[0] : args;
 
+    if (window.GAS_API_URL && window.GAS_API_URL.trim() !== '' && window.GAS_API_URL !== 'YOUR_GAS_DEPLOYED_WEB_APP_URL') {
+      return this.callFetch(functionName, payloadData);
+    }
+
+    return new Promise(function(resolve, reject) {
+      if (typeof google === 'undefined' || !google.script || !google.script.run) {
+        if (window.GAS_API_URL) {
+          resolve(window.ApiClient.callFetch(functionName, payloadData));
+        } else {
+          console.warn('ApiClient: google.script.run is unavailable and GAS_API_URL is not set.');
+          resolve({ success: false, error_code: 'ENV_ERROR', message: 'กรุณาระบุ GAS_API_URL ในไฟล์ config_api.js' });
+        }
+        return;
+      }
+
+      var runner = google.script.run
+        .withSuccessHandler(function(response) { resolve(response); })
+        .withFailureHandler(function(error) {
+          console.error('ApiClient Server Error [' + functionName + ']:', error);
+          resolve({ success: false, error_code: 'SERVER_ERROR', message: (error && error.message) ? error.message : String(error) });
+        });
+
+      if (typeof runner[functionName] === 'function') {
+        runner[functionName].apply(runner, args);
+      } else {
+        resolve({ success: false, error_code: 'NOT_FOUND', message: 'Function ' + functionName + ' not found' });
+      }
+    });
+  },
+
+  callFetch: function(action, data) {
+    var apiUrl = window.GAS_API_URL;
+    var requestBody = { action: action, data: data };
+
+    return fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(requestBody)
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(json) { return json; })
+    .catch(function(err) {
+      console.error('Fetch API Error:', err);
+      return { success: false, error_code: 'NETWORK_ERROR', message: 'ไม่สามารถเชื่อมต่อกับ GAS Web API ได้ (โปรดตรวจสอบ GAS_API_URL): ' + err.message };
+    });
+  }
+};
+  </script>
+
+  <!-- Validation Component -->
+  <script>
+window.ValidationUtil = {
+  validateFormState: function(state) {
+    var errors = [];
+    if (!state.site_id) errors.push({ field: 'site_id', message: 'กรุณาเลือก SITE งาน' });
+    if (!state.approver) errors.push({ field: 'approver', message: 'กรุณาเลือกผู้อนุมัติ' });
+    if (!state.req_name || !state.req_name.trim()) errors.push({ field: 'req_name', message: 'กรุณาระบุชื่อผู้ขอเบิก' });
+
+    if (!state.trips || !Array.isArray(state.trips) || state.trips.length === 0) {
+      errors.push({ field: 'trips', message: 'ต้องมีอย่างน้อย 1 เส้นทางการเดินทาง' });
+    } else {
+      for (var i = 0; i < state.trips.length; i++) {
+        var t = state.trips[i];
+        var cardNo = i + 1;
+        if (t.type === 'FIX' && !t.route_id) errors.push({ field: 'trip_' + t.trip_id, message: 'เส้นทางที่ ' + cardNo + ': กรุณาเลือกเส้นทางมาตรฐาน' });
+        if (t.type === 'CUSTOM') {
+          if (!t.origin || !t.origin.trim()) errors.push({ field: 'trip_' + t.trip_id, message: 'เส้นทางที่ ' + cardNo + ': กรุณาระบุต้นทาง' });
+          if (!t.dest || !t.dest.trim()) errors.push({ field: 'trip_' + t.trip_id, message: 'เส้นทางที่ ' + cardNo + ': กรุณาระบุปลายทาง' });
+        }
+        var km = parseFloat(t.km);
+        if (isNaN(km) || km <= 0 || km > 500) errors.push({ field: 'trip_' + t.trip_id, message: 'เส้นทางที่ ' + cardNo + ': ระยะทางต้องมากกว่า 0 และไม่เกิน 500 กม.' });
+        if (t.trip_type !== 'SINGLE' && t.trip_type !== 'ROUND_TRIP') errors.push({ field: 'trip_' + t.trip_id, message: 'เส้นทางที่ ' + cardNo + ': กรุณาระบุประเภทการเดินทาง (เที่ยวเดียว/ไปกลับ)' });
+      }
+    }
+    return errors;
+  },
+
+  formatCurrency: function(num) {
+    var val = parseFloat(num || 0);
+    return val.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  },
+
+  formatKm: function(num) {
+    var val = parseFloat(num || 0);
+    return val.toLocaleString('th-TH', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  }
+};
+  </script>
+
+  <!-- TripCard Component -->
+  <script>
+window.TripCardComponent = {
+  generateTripId: function() {
+    return 't-' + Math.random().toString(36).substring(2, 9);
+  },
+
+  renderCardHtml: function(trip, index, totalCards, activeRoutes, selectedSiteId) {
+    var tripNum = index + 1;
+    var isFix = trip.type === 'FIX';
+    var isRoundTrip = trip.trip_type === 'ROUND_TRIP';
+    var showDelete = totalCards > 1;
+
+    var filteredRoutes = [];
+    if (selectedSiteId) {
+      filteredRoutes = activeRoutes.filter(function(r) { return String(r.Site_ID) === String(selectedSiteId); });
+    }
+
+    var routeOptionsHtml = '<option value="">-- เลือกเส้นทางมาตรฐาน --</option>';
+    for (var i = 0; i < filteredRoutes.length; i++) {
+      var r = filteredRoutes[i];
+      var selected = (isFix && String(r.Route_ID) === String(trip.route_id)) ? 'selected' : '';
+      routeOptionsHtml += '<option value="' + r.Route_ID + '" ' + selected + '>' + r.Route_Name + ' (' + r.Distance_KM + ' กม.)</option>';
+    }
+    var customSelected = (!isFix) ? 'selected' : '';
+    routeOptionsHtml += '<option value="CUSTOM" ' + customSelected + '>📍 ระบุเส้นทางเอง (Custom)</option>';
+
+    var badgeHtml = '';
+    if (isFix && isRoundTrip) {
+      badgeHtml = '<span class="badge badge-primary">🔁 ไปกลับ ×2</span>';
+    } else if (!isFix && isRoundTrip) {
+      badgeHtml = '<span class="badge badge-warning">🔁 ไปกลับ</span>';
+    }
+
+    return '' +
+    '<div class="trip-card" id="card-' + trip.trip_id + '" data-id="' + trip.trip_id + '">' +
+      '<div class="trip-card-header">' +
+        '<div class="trip-number">เส้นทางที่ ' + tripNum + ' ' + badgeHtml + '</div>' +
+        (showDelete ? '<button type="button" class="btn-icon-del" onclick="TripCardComponent.promptDeleteTrip(\'' + trip.trip_id + '\')">🗑️</button>' : '') +
+      '</div>' +
+
+      '<div class="form-group">' +
+        '<label>เลือกเส้นทาง ' + (!selectedSiteId ? '<span style="color:#f87171;">(กรุณาเลือก SITE งานก่อน)</span>' : '') + '</label>' +
+        '<select class="form-control" ' + (!selectedSiteId ? 'disabled' : '') + ' onchange="TripCardComponent.handleRouteSelect(\'' + trip.trip_id + '\', this.value)">' +
+          routeOptionsHtml +
+        '</select>' +
+      '</div>' +
+
+      '<div style="display: flex; gap: 10px;">' +
+        '<div class="form-group" style="flex: 1;">' +
+          '<label>ต้นทาง</label>' +
+          '<input type="text" class="form-control" value="' + (trip.origin || '') + '" ' + (isFix ? 'readonly' : '') + ' placeholder="สถานที่ต้นทาง" oninput="TripCardComponent.handleInputUpdate(\'' + trip.trip_id + '\', \'origin\', this.value)">' +
+        '</div>' +
+        '<div class="form-group" style="flex: 1;">' +
+          '<label>ปลายทาง</label>' +
+          '<input type="text" class="form-control" value="' + (trip.dest || '') + '" ' + (isFix ? 'readonly' : '') + ' placeholder="สถานที่ปลายทาง" oninput="TripCardComponent.handleInputUpdate(\'' + trip.trip_id + '\', \'dest\', this.value)">' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="form-group">' +
+        '<label>ระยะทาง (กม.) ' + (isFix ? '🔒' : '') + '</label>' +
+        '<input type="number" step="0.1" inputmode="decimal" class="form-control" value="' + (trip.km || '') + '" ' + (isFix ? 'readonly' : '') + ' placeholder="0.0" oninput="TripCardComponent.handleInputUpdate(\'' + trip.trip_id + '\', \'km\', this.value)">' +
+        (!isFix ? '<div class="hint-text">กรอกระยะทางรวมตามจริง (รวมขากลับด้วยหากมีเดินทางไปกลับ)</div>' : '') +
+      '</div>' +
+
+      '<div class="form-group">' +
+        '<label>ประเภทการเดินทาง</label>' +
+        '<div class="segmented-control">' +
+          '<button type="button" class="segmented-btn ' + (!isRoundTrip ? 'active' : '') + '" onclick="TripCardComponent.handleTripTypeToggle(\'' + trip.trip_id + '\', \'SINGLE\')">เที่ยวเดียว</button>' +
+          '<button type="button" class="segmented-btn ' + (isRoundTrip ? 'active' : '') + '" onclick="TripCardComponent.handleTripTypeToggle(\'' + trip.trip_id + '\', \'ROUND_TRIP\')">ไปกลับ</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  },
+
+  handleRouteSelect: function(tripId, val) {
+    var trip = window.AppState.findTrip(tripId);
+    if (!trip) return;
+    if (val === 'CUSTOM') {
+      trip.type = 'CUSTOM';
+      trip.route_id = null;
+      trip.route_name = 'ระบุเอง';
+      trip.origin = '';
+      trip.dest = '';
+      trip.km = '';
+    } else if (val) {
+      var route = window.AppState.findRoute(val);
+      if (route) {
+        trip.type = 'FIX';
+        trip.route_id = route.Route_ID;
+        trip.route_name = route.Route_Name;
+        trip.origin = route.Origin;
+        trip.dest = route.Destination;
+        trip.km = route.Distance_KM;
+      }
+    }
+    window.TripFormComponent.renderTripsList();
+    window.TripFormComponent.updateSummary();
+  },
+
+  handleInputUpdate: function(tripId, field, val) {
+    var trip = window.AppState.findTrip(tripId);
+    if (!trip) return;
+    trip[field] = val;
+    window.TripFormComponent.updateSummary();
+  },
+
+  handleTripTypeToggle: function(tripId, typeVal) {
+    var trip = window.AppState.findTrip(tripId);
+    if (!trip) return;
+    trip.trip_type = typeVal;
+    window.TripFormComponent.renderTripsList();
+    window.TripFormComponent.updateSummary();
+  },
+
+  promptDeleteTrip: function(tripId) {
+    window.AppState.pendingDeleteTripId = tripId;
+    document.getElementById('modal-delete-trip').classList.add('active');
+  },
+
+  confirmDeleteTrip: function() {
+    var tripId = window.AppState.pendingDeleteTripId;
+    if (tripId) {
+      window.AppState.removeTrip(tripId);
+      window.TripFormComponent.renderTripsList();
+      window.TripFormComponent.updateSummary();
+    }
+    document.getElementById('modal-delete-trip').classList.remove('active');
+    window.AppState.pendingDeleteTripId = null;
+  }
+};
+  </script>
+
+  <!-- TripForm Component -->
+  <script>
+window.TripFormComponent = {
+  renderForm: function(containerEl) {
+    var state = window.AppState;
+    var master = state.masterData || {};
+    var isEditLocked = state.currentTransactionStatus === 'APPROVED';
+
+    var sites = master.masterSite || [];
+    var approvers = master.approveUsers || [];
+
+    var siteOptions = '<option value="">-- เลือก SITE งาน --</option>';
+    for (var i = 0; i < sites.length; i++) {
+      var s = sites[i];
+      var selected = (s.Site_ID === state.selectedSiteId) ? 'selected' : '';
+      siteOptions += '<option value="' + s.Site_ID + '" ' + selected + '>' + s.Site_Name + '</option>';
+    }
+
+    var approverOptions = '<option value="">-- เลือกผู้อนุมัติ --</option>';
+    for (var j = 0; j < approvers.length; j++) {
+      var a = approvers[j];
+      var selectedApp = (a.approve_request === state.selectedApprover) ? 'selected' : '';
+      approverOptions += '<option value="' + a.approve_request + '" ' + selectedApp + '>' + a.approve_request + '</option>';
+    }
+
+    var html = '' +
+    '<div class="glass-card">' +
+      '<div class="card-header-title">📋 บันทึกเบิกค่าเดินทาง</div>' +
+      (isEditLocked ? '<div class="badge badge-success" style="width: 100%; justify-center; padding: 10px; margin-bottom: 14px; font-size: 0.9rem;">🔒 รายการนี้ได้รับการอนุมัติแล้ว (Read-Only)</div>' : '') +
+
+      '<div class="form-group">' +
+        '<label>ชื่อผู้ขอเบิก</label>' +
+        '<input type="text" id="input-req-name" class="form-control" value="' + (state.requesterName || '') + '" ' + (isEditLocked ? 'readonly' : '') + ' placeholder="ระบุชื่อ-นามสกุล">' +
+      '</div>' +
+
+      '<div class="form-group">' +
+        '<label>เลขทะเบียนรถ</label>' +
+        '<input type="text" id="input-plate-no" class="form-control" value="' + (state.plateNo || '') + '" ' + (isEditLocked ? 'readonly' : '') + ' placeholder="เช่น กข-1234 กทม">' +
+      '</div>' +
+
+      '<div class="form-group">' +
+        '<label>วันที่เดินทาง</label>' +
+        '<input type="date" id="input-req-date" class="form-control" value="' + (state.selectedDate || master.today_th || '') + '" ' + (isEditLocked ? 'readonly' : '') + '>' +
+      '</div>' +
+
+      '<div class="form-group">' +
+        '<label>SITE งาน ' + (state.currentTxId ? '🔒 (ล็อกหลังบันทึก)' : '') + '</label>' +
+        '<select id="select-site-id" class="form-control" ' + (state.currentTxId || isEditLocked ? 'disabled' : '') + ' onchange="TripFormComponent.handleSiteChange(this.value)">' +
+          siteOptions +
+        '</select>' +
+      '</div>' +
+    '</div>' +
+
+    '<div id="trip-cards-container"></div>' +
+
+    (!isEditLocked ? 
+      '<div style="margin-bottom: 16px;">' +
+        '<button type="button" id="btn-add-trip" class="btn btn-secondary" onclick="TripFormComponent.handleAddTripCard()">' +
+          '➕ เพิ่มเส้นทางการเดินทาง' +
+        '</button>' +
+        '<div id="max-trips-hint" class="hint-text" style="text-align: center; display: none;">สูงสุด 10 เส้นทางต่อวัน</div>' +
+      '</div>' 
+    : '') +
+
+    '<div class="glass-card">' +
+      '<div class="form-group">' +
+        '<label>วัตถุประสงค์การเดินทาง</label>' +
+        '<input type="text" id="input-purpose" class="form-control" value="' + (state.travelPurpose || '') + '" ' + (isEditLocked ? 'readonly' : '') + ' placeholder="เช่น ติดต่อลูกค้า / ซ่อมแซมระบบ">' +
+      '</div>' +
+
+      '<div class="form-group">' +
+        '<label>ค่าทางด่วน (บาท)</label>' +
+        '<input type="number" step="1" inputmode="decimal" id="input-toll-fee" class="form-control" value="' + (state.tollFee || '') + '" ' + (isEditLocked ? 'readonly' : '') + ' placeholder="0" oninput="TripFormComponent.updateSummary()">' +
+      '</div>' +
+
+      '<div class="form-group">' +
+        '<label>ค่าที่จอดรถ (บาท)</label>' +
+        '<input type="number" step="1" inputmode="decimal" id="input-park-fee" class="form-control" value="' + (state.parkFee || '') + '" ' + (isEditLocked ? 'readonly' : '') + ' placeholder="0" oninput="TripFormComponent.updateSummary()">' +
+      '</div>' +
+
+      '<div class="form-group" style="display: flex; align-items: center; justify-content: space-between; background: rgba(15,23,42,0.5); padding: 10px 14px; border-radius: 12px; margin-top: 10px;">' +
+        '<div>' +
+          '<div style="font-weight:600;">ค่ารถเหมาจ่าย (150 บาท)</div>' +
+          '<div class="hint-text">เปิดเมื่อมีการใช้รถเหมาเบิกประจำวัน</div>' +
+        '</div>' +
+        '<input type="checkbox" id="chk-flat-rate" style="width: 22px; height: 22px; cursor: pointer;" ' + (state.flatRateFee > 0 ? 'checked' : '') + ' ' + (isEditLocked ? 'disabled' : '') + ' onchange="TripFormComponent.updateSummary()">' +
+      '</div>' +
+
+      '<div class="form-group" style="margin-top: 14px;">' +
+        '<label>ส่งขออนุมัติไปยัง</label>' +
+        '<select id="select-approver" class="form-control" ' + (isEditLocked ? 'disabled' : '') + '>' +
+          approverOptions +
+        '</select>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="summary-box">' +
+      '<div class="summary-row"><span>ระยะทางรวม:</span><strong id="summary-total-km">0.0 กม.</strong></div>' +
+      '<div class="summary-row"><span>อัตราเบิก:</span><strong id="summary-rate">0.00 บาท/กม.</strong></div>' +
+      '<div class="summary-row"><span>ค่ารถเหมา:</span><strong id="summary-flat-fee">0.00 บาท</strong></div>' +
+      '<div class="summary-row total-net"><span>ยอดเบิกสุทธิ:</span><strong id="summary-net-total">0.00 บาท</strong></div>' +
+    '</div>' +
+
+    (!isEditLocked ? 
+      '<button type="button" id="btn-submit-tx" class="btn btn-primary" onclick="TripFormComponent.handleSubmit()">' +
+        '💾 บันทึกข้อมูลและส่งขออนุมัติ' +
+      '</button>' 
+    : '') +
+
+    '<button type="button" class="btn btn-secondary" style="margin-top: 10px;" onclick="App.navigateTo(\'summary_list\')">' +
+      '⬅️ ย้อนกลับไปหน้าสรุปประจำวัน' +
+    '</button>';
+
+    containerEl.innerHTML = html;
+    this.renderTripsList();
+    this.updateSummary();
+  },
+
+  renderTripsList: function() {
+    var container = document.getElementById('trip-cards-container');
+    if (!container) return;
+
+    var trips = window.AppState.trips || [];
+    var master = window.AppState.masterData || {};
+    var routes = master.masterRoutes || [];
+    var siteId = window.AppState.selectedSiteId;
+
+    var html = '';
+    for (var i = 0; i < trips.length; i++) {
+      html += window.TripCardComponent.renderCardHtml(trips[i], i, trips.length, routes, siteId);
+    }
+    container.innerHTML = html;
+
+    var btnAdd = document.getElementById('btn-add-trip');
+    var hintMax = document.getElementById('max-trips-hint');
+    if (btnAdd) {
+      var isMax = trips.length >= (master.masterConfig ? Number(master.masterConfig.MAX_TRIPS_PER_DAY || 10) : 10);
+      btnAdd.disabled = isMax;
+      if (hintMax) hintMax.style.display = isMax ? 'block' : 'none';
+    }
+  },
+
+  handleAddTripCard: function() {
+    var state = window.AppState;
+    var maxTrips = state.masterData.masterConfig ? Number(state.masterData.masterConfig.MAX_TRIPS_PER_DAY || 10) : 10;
+    if (state.trips.length >= maxTrips) return;
+
+    state.trips.push({
+      trip_id: window.TripCardComponent.generateTripId(),
+      trip_no: state.trips.length + 1,
+      type: 'CUSTOM',
+      trip_type: 'SINGLE',
+      route_id: null,
+      route_name: 'ระบุเอง',
+      origin: '',
+      dest: '',
+      km: ''
+    });
+
+    this.renderTripsList();
+    this.updateSummary();
+  },
+
+  handleSiteChange: function(newSiteId) {
+    var state = window.AppState;
+    var hasFixTrips = state.trips.some(function(t) { return t.type === 'FIX'; });
+
+    if (hasFixTrips) {
+      window.AppState.pendingNewSiteId = newSiteId;
+      document.getElementById('modal-confirm-site').classList.add('active');
+    } else {
+      state.selectedSiteId = newSiteId;
+      this.renderTripsList();
+    }
+  },
+
+  confirmSiteChange: function() {
+    var state = window.AppState;
+    state.selectedSiteId = state.pendingNewSiteId;
+    for (var i = 0; i < state.trips.length; i++) {
+      if (state.trips[i].type === 'FIX') {
+        state.trips[i].type = 'CUSTOM';
+        state.trips[i].route_id = null;
+        state.trips[i].route_name = 'ระบุเอง';
+        state.trips[i].origin = '';
+        state.trips[i].dest = '';
+        state.trips[i].km = '';
+      }
+    }
+    document.getElementById('modal-confirm-site').classList.remove('active');
+    state.pendingNewSiteId = null;
+    this.renderTripsList();
+    this.updateSummary();
+  },
+
+  updateSummary: function() {
+    var state = window.AppState;
+    var master = state.masterData || {};
+    var rateCar = master.rateCar || [];
+    var userProf = master.userProfile || {};
+    var reqDate = document.getElementById('input-req-date') ? document.getElementById('input-req-date').value : state.selectedDate;
+
+    var totalKm = 0;
+    for (var i = 0; i < state.trips.length; i++) {
+      var t = state.trips[i];
+      var km = parseFloat(t.km || 0);
+      if (!isNaN(km) && km > 0) {
+        if (t.type === 'FIX' && t.trip_type === 'ROUND_TRIP') {
+          totalKm += (km * 2);
+        } else {
+          totalKm += km;
+        }
+      }
+    }
+
+    var groupNum = userProf.group_car || 1;
+    var colName = 'group_car' + groupNum;
+    var rate = 4.8;
+    if (rateCar.length > 0) {
+      var matches = rateCar.filter(function(r) { return r.dt_date <= reqDate; });
+      if (matches.length > 0) {
+        matches.sort(function(a, b) { return b.dt_date.localeCompare(a.dt_date); });
+        rate = parseFloat(matches[0][colName] || matches[0]['group_car1'] || 4.8);
+      }
+    }
+
+    var toll = parseFloat(document.getElementById('input-toll-fee') ? document.getElementById('input-toll-fee').value : 0) || 0;
+    var park = parseFloat(document.getElementById('input-park-fee') ? document.getElementById('input-park-fee').value : 0) || 0;
+    var flatRateVal = master.masterConfig ? parseFloat(master.masterConfig.FLAT_RATE_FEE || 150) : 150;
+    var isFlatChecked = document.getElementById('chk-flat-rate') ? document.getElementById('chk-flat-rate').checked : false;
+    var flatFee = isFlatChecked ? flatRateVal : 0;
+
+    var netTotal = (totalKm * rate) + toll + park + flatFee;
+
+    if (document.getElementById('summary-total-km')) document.getElementById('summary-total-km').innerText = window.ValidationUtil.formatKm(totalKm) + ' กม.';
+    if (document.getElementById('summary-rate')) document.getElementById('summary-rate').innerText = window.ValidationUtil.formatCurrency(rate) + ' บาท/กม.';
+    if (document.getElementById('summary-flat-fee')) document.getElementById('summary-flat-fee').innerText = window.ValidationUtil.formatCurrency(flatFee) + ' บาท';
+    if (document.getElementById('summary-net-total')) document.getElementById('summary-net-total').innerText = window.ValidationUtil.formatCurrency(netTotal) + ' บาท';
+
+    if (document.getElementById('sticky-net-amount')) document.getElementById('sticky-net-amount').innerText = window.ValidationUtil.formatCurrency(netTotal) + ' ฿';
+    if (document.getElementById('sticky-km-amount')) document.getElementById('sticky-km-amount').innerText = window.ValidationUtil.formatKm(totalKm) + ' กม.';
+  },
+
+  handleSubmit: function() {
+    var state = window.AppState;
+
+    state.requesterName = document.getElementById('input-req-name').value;
+    state.plateNo = document.getElementById('input-plate-no').value;
+    state.selectedDate = document.getElementById('input-req-date').value;
+    state.selectedSiteId = document.getElementById('select-site-id').value;
+    state.travelPurpose = document.getElementById('input-purpose').value;
+    state.tollFee = document.getElementById('input-toll-fee').value;
+    state.parkFee = document.getElementById('input-park-fee').value;
+    state.flatRateFee = document.getElementById('chk-flat-rate').checked ? (state.masterData.masterConfig ? parseFloat(state.masterData.masterConfig.FLAT_RATE_FEE || 150) : 150) : 0;
+    state.selectedApprover = document.getElementById('select-approver').value;
+
+    var errors = window.ValidationUtil.validateFormState(state);
+    if (errors.length > 0) {
+      alert('⚠️ โปรดตรวจสอบข้อมูล:\n- ' + errors.map(function(e) { return e.message; }).join('\n- '));
+      return;
+    }
+
+    var btnSubmit = document.getElementById('btn-submit-tx');
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = '<span class="spinner"></span> กำลังบันทึกข้อมูล...';
+
+    var payload = {
+      transaction_id: state.currentTxId || null,
+      line_user_id: state.lineUserId,
+      req_name: state.requesterName,
+      req_date: state.selectedDate,
+      plate_no: state.plateNo,
+      site_id: state.selectedSiteId,
+      travel_purpose: state.travelPurpose,
+      toll_fee: state.tollFee,
+      park_fee: state.parkFee,
+      flat_rate_fee: state.flatRateFee,
+      approver: state.selectedApprover,
+      trip_details: state.trips
+    };
+
+    window.ApiClient.call('submitTransaction', payload).then(function(res) {
+      btnSubmit.disabled = false;
+      btnSubmit.innerHTML = '💾 บันทึกข้อมูลและส่งขออนุมัติ';
+
+      if (res && res.success) {
+        alert('✅ ' + (res.data ? res.data.message : 'บันทึกสำเร็จ'));
+        window.App.navigateTo('summary_list');
+      } else {
+        alert('❌ ไม่สามารถบันทึกได้ (' + (res ? res.error_code : 'ERROR') + '): ' + (res ? res.message : 'เกิดข้อผิดพลาด'));
+      }
+    });
+  }
+};
+  </script>
+
+  <!-- DaySummaryList Component -->
+  <script>
+window.DaySummaryListComponent = {
+  renderScreen: function(containerEl) {
+    var state = window.AppState;
+    var currentDate = state.selectedDate || (state.masterData ? state.masterData.today_th : '');
+
+    var html = '' +
+    '<div class="glass-card">' +
+      '<div class="card-header-title">📅 เลือกวันที่เพื่อดูรายการเบิก</div>' +
+      '<div class="form-group">' +
+        '<input type="date" id="summary-date-picker" class="form-control" value="' + currentDate + '" onchange="DaySummaryListComponent.handleDateChange(this.value)">' +
+      '</div>' +
+    '</div>' +
+
+    '<div id="summary-cards-container"><div style="text-align:center; padding: 20px;"><span class="spinner"></span> กำลังโหลดข้อมูล...</div></div>';
+
+    containerEl.innerHTML = html;
+    this.loadList(currentDate);
+  },
+
+  loadList: function(dateStr) {
+    var state = window.AppState;
+    var container = document.getElementById('summary-cards-container');
+    if (!container) return;
+
+    window.ApiClient.call('listTransactionsByDate', dateStr, state.lineUserId).then(function(res) {
+      if (!res || !res.success) {
+        container.innerHTML = '<div class="glass-card" style="text-align:center; color:#f87171;">ไม่สามารถโหลดรายการได้: ' + (res ? res.message : 'Error') + '</div>';
+        return;
+      }
+
+      var items = res.data || [];
+      state.dailyTransactions = items;
+
+      if (items.length === 0) {
+        container.innerHTML = '' +
+        '<div class="glass-card" style="text-align: center; padding: 30px 20px;">' +
+          '<div style="font-size: 3rem; margin-bottom: 10px;">🚗</div>' +
+          '<div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 6px;">ยังไม่มีรายการเบิกสำหรับวันนี้</div>' +
+          '<div style="color: var(--text-muted); margin-bottom: 20px; font-size: 0.85rem;">เริ่มต้นบันทึกการเดินทางประจำวันสำหรับ Site งานของคุณ</div>' +
+          '<button type="button" class="btn btn-primary" onclick="DaySummaryListComponent.handleCreateNewRecord()">' +
+            '➕ เริ่มบันทึกการเดินทาง' +
+          '</button>' +
+        '</div>';
+      } else {
+        var html = '<div class="card-header-title" style="margin-left: 4px;">รายการเบิกตาม Site งาน (' + items.length + ')</div>';
+
+        for (var i = 0; i < items.length; i++) {
+          var item = items[i];
+          var statusBadge = '';
+          if (item.status === 'APPROVED') {
+            statusBadge = '<span class="badge badge-success">🟢 อนุมัติแล้ว</span>';
+          } else if (item.status === 'REJECTED') {
+            statusBadge = '<span class="badge badge-danger">🔴 ปฏิเสธ</span>';
+          } else {
+            statusBadge = '<span class="badge badge-warning">🟡 รออนุมัติ</span>';
+          }
+
+          html += '' +
+          '<div class="glass-card" style="cursor: pointer;" onclick="DaySummaryListComponent.handleSelectRecord(\'' + item.transaction_id + '\')">' +
+            '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">' +
+              '<div style="font-weight: 700; font-size: 1.05rem; color: #38bdf8;">📍 ' + item.site_name + '</div>' +
+              statusBadge +
+            '</div>' +
+            '<div style="display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.9rem;">' +
+              '<span>' + item.trip_count + ' เส้นทาง · ' + window.ValidationUtil.formatKm(item.total_km) + ' กม.</span>' +
+              '<strong style="color: #fff; font-size: 1rem;">' + window.ValidationUtil.formatCurrency(item.net_total) + ' ฿</strong>' +
+            '</div>' +
+          '</div>';
+        }
+
+        html += '' +
+        '<button type="button" class="btn btn-primary" style="margin-top: 8px;" onclick="DaySummaryListComponent.handleCreateNewRecord()">' +
+          '➕ เพิ่ม Site ใหม่' +
+        '</button>';
+
+        container.innerHTML = html;
+      }
+    });
+  },
+
+  handleDateChange: function(newDateStr) {
+    window.AppState.selectedDate = newDateStr;
+    this.loadList(newDateStr);
+  },
+
+  handleCreateNewRecord: function() {
+    var state = window.AppState;
+    state.resetFormState();
+    window.App.navigateTo('trip_form');
+  },
+
+  handleSelectRecord: function(transactionId) {
+    var state = window.AppState;
+    container = document.getElementById('app-screen-container');
+    if (container) container.innerHTML = '<div style="text-align:center; padding: 40px;"><span class="spinner"></span> กำลังดึงข้อมูลรายการ...</div>';
+
+    window.ApiClient.call('getTransactionDetail', transactionId).then(function(res) {
+      if (res && res.success && res.data) {
+        state.loadTransactionDetailIntoState(res.data);
+        window.App.navigateTo('trip_form');
+      } else {
+        alert('❌ ไม่สามารถดึงรายละเอียดได้: ' + (res ? res.message : 'Error'));
+        window.App.navigateTo('summary_list');
+      }
+    });
+  }
+};
+  </script>
+
+  <!-- App Store & Router -->
+  <script>
+window.AppState = {
+  lineUserId: 'USER-LOCAL-TEST',
+  requesterName: '',
+  plateNo: '',
+  selectedDate: '',
+  selectedSiteId: '',
+  travelPurpose: '',
+  tollFee: 0,
+  parkFee: 0,
+  flatRateFee: 0,
+  selectedApprover: '',
+  currentTxId: null,
+  currentTransactionStatus: 'DRAFT',
+  pendingDeleteTripId: null,
+  pendingNewSiteId: null,
+  trips: [],
+  masterData: null,
+  dailyTransactions: [],
+  currentScreen: 'summary_list',
+
+  resetFormState: function() {
+    this.currentTxId = null;
+    this.currentTransactionStatus = 'DRAFT';
+    this.selectedSiteId = '';
+    this.travelPurpose = '';
+    this.tollFee = 0;
+    this.parkFee = 0;
+    this.flatRateFee = 0;
+
+    this.trips = [{
+      trip_id: window.TripCardComponent.generateTripId(),
+      trip_no: 1,
+      type: 'CUSTOM',
+      trip_type: 'SINGLE',
+      route_id: null,
+      route_name: 'ระบุเอง',
+      origin: '',
+      dest: '',
+      km: ''
+    }];
+  },
+
+  loadTransactionDetailIntoState: function(detail) {
+    this.currentTxId = detail.transaction_id;
+    this.requesterName = detail.req_name;
+    this.plateNo = detail.plate_no;
+    this.selectedDate = detail.req_date;
+    this.selectedSiteId = detail.site_id;
+    this.travelPurpose = detail.travel_purpose;
+    this.tollFee = detail.toll_fee;
+    this.parkFee = detail.park_fee;
+    this.flatRateFee = detail.flat_rate_fee;
+    this.selectedApprover = detail.approver;
+    this.currentTransactionStatus = detail.status;
+    this.trips = detail.trip_details || [];
+  },
+
+  findTrip: function(tripId) {
+    for (var i = 0; i < this.trips.length; i++) {
+      if (this.trips[i].trip_id === tripId) return this.trips[i];
+    }
+    return null;
+  },
+
+  findRoute: function(routeId) {
+    var routes = (this.masterData && this.masterData.masterRoutes) ? this.masterData.masterRoutes : [];
+    for (var i = 0; i < routes.length; i++) {
+      if (String(routes[i].Route_ID) === String(routeId)) return routes[i];
+    }
+    return null;
+  },
+
+  removeTrip: function(tripId) {
+    this.trips = this.trips.filter(function(t) { return t.trip_id !== tripId; });
+    for (var i = 0; i < this.trips.length; i++) {
+      this.trips[i].trip_no = i + 1;
+    }
+  }
+};
+
+window.App = {
+  init: function() {
+    console.log('App Initializing...');
+    this.initLiff().then(function() {
+      App.loadMasterData();
+    });
+  },
+
+  initLiff: function() {
+    return new Promise(function(resolve) {
+      if (typeof liff === 'undefined') {
+        console.warn('LINE LIFF SDK not detected. Operating in standalone mode.');
+        resolve();
+        return;
+      }
+
+      var liffId = '2009016720-k0zSXOrx';
+      liff.init({ liffId: liffId }).then(function() {
+        if (!liff.isLoggedIn()) {
+          liff.login();
+        } else {
+          liff.getProfile().then(function(profile) {
+            if (profile && profile.userId) {
+              window.AppState.lineUserId = profile.userId;
+              if (profile.displayName) {
+                window.AppState.requesterName = profile.displayName;
+              }
+            }
+            resolve();
+          }).catch(function(e) {
+            console.error('LIFF getProfile Error:', e);
+            resolve();
+          });
+        }
+      }).catch(function(err) {
+        console.warn('LIFF init warning:', err);
+        resolve();
+      });
+    });
+  },
+
+  loadMasterData: function() {
+    var container = document.getElementById('app-screen-container');
+    if (container) container.innerHTML = '<div style="text-align:center; padding: 50px;"><span class="spinner"></span> กำลังโหลดข้อมูลระบบ...</div>';
+
+    window.ApiClient.call('getDataOnLoad', window.AppState.lineUserId).then(function(res) {
+      if (res && res.success && res.data) {
+        window.AppState.masterData = res.data;
+        window.AppState.selectedDate = res.data.today_th;
+
+        if (res.data.userProfile) {
+          window.AppState.requesterName = res.data.userProfile.requester_name || window.AppState.requesterName;
+          window.AppState.plateNo = res.data.userProfile.car_no || window.AppState.plateNo;
+        }
+
+        App.navigateTo('summary_list');
+      } else {
+        if (container) container.innerHTML = '<div class="glass-card" style="text-align:center; color:#f87171;">เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + (res ? res.message : 'Unknown') + '</div>';
+      }
+    });
+  },
+
+  navigateTo: function(screenName) {
+    window.AppState.currentScreen = screenName;
+    var container = document.getElementById('app-screen-container');
+    var stickyBar = document.getElementById('sticky-bar');
+
+    if (screenName === 'summary_list') {
+      if (stickyBar) stickyBar.style.display = 'none';
+      window.DaySummaryListComponent.renderScreen(container);
+    } else if (screenName === 'trip_form') {
+      if (stickyBar) stickyBar.style.display = 'flex';
+      window.TripFormComponent.renderForm(container);
+    }
+  }
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+  window.App.init();
+});
+  </script>
 </body>
 </html>

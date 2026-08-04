@@ -1,20 +1,32 @@
 <script>
 /**
- * Js_ApiClient.html — Promisified Client for GAS Backend API Calls
+ * Js_ApiClient.html — Unified API Client (Supports both google.script.run and HTTP fetch for GitHub Pages)
  * Mileage Reimbursement System (v10.1)
  */
 
 window.ApiClient = {
   /**
-   * Invokes a server-side GAS function asynchronously with Promise wrapper.
+   * Invokes backend action via HTTP fetch (GitHub Pages mode) or google.script.run (GAS native mode).
    */
   call: function(functionName) {
     var args = Array.prototype.slice.call(arguments, 1);
-    
+    var payloadData = args.length === 1 ? args[0] : args;
+
+    // Mode 1: GitHub Pages / External mode (if window.GAS_API_URL is configured)
+    if (window.GAS_API_URL && window.GAS_API_URL.trim() !== '' && window.GAS_API_URL !== 'YOUR_GAS_DEPLOYED_WEB_APP_URL') {
+      return this.callFetch(functionName, payloadData);
+    }
+
+    // Mode 2: GAS Native mode (google.script.run)
     return new Promise(function(resolve, reject) {
       if (typeof google === 'undefined' || !google.script || !google.script.run) {
-        console.warn('ApiClient: google.script.run is not available (mock mode / standalone).');
-        resolve({ success: false, error_code: 'ENV_ERROR', message: 'google.script.run is unavailable' });
+        // Fallback to fetch if window.GAS_API_URL is present
+        if (window.GAS_API_URL) {
+          resolve(window.ApiClient.callFetch(functionName, payloadData));
+        } else {
+          console.warn('ApiClient: google.script.run is unavailable and GAS_API_URL is not set.');
+          resolve({ success: false, error_code: 'ENV_ERROR', message: 'กรุณาระบุ GAS_API_URL ในไฟล์ config_api.js' });
+        }
         return;
       }
 
@@ -37,6 +49,40 @@ window.ApiClient = {
         console.error('ApiClient: Function ' + functionName + ' does not exist on server.');
         resolve({ success: false, error_code: 'NOT_FOUND', message: 'Function ' + functionName + ' not found' });
       }
+    });
+  },
+
+  /**
+   * Executes HTTP POST fetch to deployed GAS Web App API endpoint.
+   */
+  callFetch: function(action, data) {
+    var apiUrl = window.GAS_API_URL;
+    
+    var requestBody = {
+      action: action,
+      data: data
+    };
+
+    return fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8' // Text/plain prevents CORS preflight OPTIONS block in GAS
+      },
+      body: JSON.stringify(requestBody)
+    })
+    .then(function(res) {
+      return res.json();
+    })
+    .then(function(json) {
+      return json;
+    })
+    .catch(function(err) {
+      console.error('Fetch API Error:', err);
+      return {
+        success: false,
+        error_code: 'NETWORK_ERROR',
+        message: 'ไม่สามารถเชื่อมต่อกับ GAS Web API ได้ (โปรดตรวจสอบ GAS_API_URL): ' + err.message
+      };
     });
   }
 };
