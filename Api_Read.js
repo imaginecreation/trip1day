@@ -46,10 +46,12 @@ function getDataOnLoad(lineUserId) {
       return allApp.filter(a => Repository_Sheets.isActiveRow(a));
     });
 
-    // 6. User Profile lookup (Fresh query per user)
+    // 6. User Profile lookup (Fresh query per user) -> Changed to use cache
     let userProfile = null;
     if (lineUserId && String(lineUserId).trim()) {
-      const profiles = Repository_Sheets.bulkReadAsObjects(CONFIG.SHEETS.USERS_PROFILE);
+      const profiles = Repository_Cache.getCached('USERS_PROFILE_ALL', function() {
+        return Repository_Sheets.bulkReadAsObjects(CONFIG.SHEETS.USERS_PROFILE);
+      });
       const match = profiles.find(p => String(p.Line_uid) === String(lineUserId).trim());
       if (match) {
         userProfile = {
