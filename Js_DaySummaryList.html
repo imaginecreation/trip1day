@@ -164,10 +164,8 @@ window.DaySummaryListComponent = {
     
     window.ApiClient.call('deleteTransaction', txId).then(function(res) {
       if (res && res.success) {
-        // Refresh the list
-        var state = window.AppState;
-        var reqDate = state.selectedDate || (state.masterData ? state.masterData.today_th : '');
-        window.DaySummaryListComponent.loadList(reqDate);
+        // Force a full re-render of the summary list to restore all containers
+        window.App.navigateTo('summary_list');
       } else {
         alert('❌ ไม่สามารถลบรายการได้: ' + (res ? res.message : 'Error'));
         window.App.navigateTo('summary_list');
