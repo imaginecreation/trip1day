@@ -1246,29 +1246,70 @@ window.App = {
     });
   },
 
-  loadMasterData: function() {
+  loadMasterData: function(forceSync) {
+    var self = this;
     var container = document.getElementById('app-screen-container');
     if (container) container.innerHTML = '<div style="text-align:center; padding: 50px;"><span class="spinner"></span> กำลังโหลดข้อมูลระบบ...</div>';
 
+    var cacheKey = 'trip1day_master_data_' + (window.AppState.lineUserId || 'anon');
+    
+    // Check LocalStorage first (Level 1 Cache)
+    if (!forceSync) {
+      try {
+        var cachedStr = localStorage.getItem(cacheKey);
+        if (cachedStr) {
+          var cachedObj = JSON.parse(cachedStr);
+          // Check expiry (e.g. 24 hours)
+          if (cachedObj.timestamp && (Date.now() - cachedObj.timestamp) < (24 * 60 * 60 * 1000)) {
+            console.log('Loaded Master Data from LocalStorage');
+            self._applyMasterData(cachedObj.data);
+            
+            // Background Revalidation (Stale-While-Revalidate)
+            // Silently ping server after 2 seconds to update cache if needed
+            setTimeout(function() {
+              window.ApiClient.call('getDataOnLoad', window.AppState.lineUserId).then(function(res) {
+                if (res && res.success && res.data) {
+                  localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: res.data }));
+                  window.AppState.masterData = res.data; // silently update state in background
+                }
+              });
+            }, 2000);
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('LocalStorage error:', e);
+      }
+    }
+
+    // Fallback or Force Sync: Fetch from server
     window.ApiClient.call('getDataOnLoad', window.AppState.lineUserId).then(function(res) {
       if (res && res.success && res.data) {
-        window.AppState.masterData = res.data;
-        window.AppState.selectedDate = res.data.today_th;
-
-        if (res.data.userProfile && res.data.userProfile.requester_name && res.data.userProfile.requester_name.trim() !== '') {
-          window.AppState.requesterName = res.data.userProfile.requester_name;
-          window.AppState.plateNo = res.data.userProfile.car_no || window.AppState.plateNo;
-        } else if (window.AppState.lineDisplayName) {
-          window.AppState.requesterName = window.AppState.lineDisplayName;
-        } else if (!window.AppState.requesterName) {
-          window.AppState.requesterName = 'สุวัฒน์ Pingly';
-        }
-
-        App.navigateTo('summary_list');
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: res.data }));
+        } catch (e) { console.warn('Cannot save to LocalStorage', e); }
+        
+        self._applyMasterData(res.data);
       } else {
-        if (container) container.innerHTML = '<div class="glass-card" style="text-align:center; color:#f87171;">เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + (res ? res.message : 'Unknown') + '</div>';
+        if (container) container.innerHTML = '<div class="glass-card" style="text-align:center; color:#f87171;">เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + (res ? res.message : 'Unknown') + '</div><br><button onclick="window.App.loadMasterData(true)" class="btn-primary" style="margin-top:10px;">ลองใหม่</button>';
       }
     });
+  },
+
+  _applyMasterData: function(data) {
+    window.AppState.masterData = data;
+    if (!window.AppState.selectedDate) window.AppState.selectedDate = data.today_th;
+
+    if (data.userProfile && data.userProfile.requester_name && data.userProfile.requester_name.trim() !== '') {
+      window.AppState.requesterName = data.userProfile.requester_name;
+      window.AppState.plateNo = data.userProfile.car_no || window.AppState.plateNo;
+    } else if (window.AppState.lineDisplayName) {
+      window.AppState.requesterName = window.AppState.lineDisplayName;
+    } else if (!window.AppState.requesterName) {
+      window.AppState.requesterName = 'สุวัฒน์ Pingly';
+    }
+
+    App.navigateTo('summary_list');
   },
 
   navigateTo: function(screenName) {
