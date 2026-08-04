@@ -412,6 +412,28 @@ select.form-control {
     </div>
   </div>
 
+  <div id="modal-delete-transaction" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-title">⚠️ ยืนยันการลบรายการ</div>
+      <div class="modal-desc">คุณต้องการลบรายการเบิกนี้ใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้</div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-delete-transaction').classList.remove('active')">ยกเลิก</button>
+        <button type="button" class="btn btn-primary" style="background:#ef4444;" onclick="DaySummaryListComponent.executeDeleteTransaction()">ยืนยันลบ</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-delete-transaction" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-title">⚠️ ยืนยันการลบรายการ</div>
+      <div class="modal-desc">คุณต้องการลบรายการเบิกนี้ใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้</div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-delete-transaction').classList.remove('active')">ยกเลิก</button>
+        <button type="button" class="btn btn-primary" style="background:#ef4444;" onclick="DaySummaryListComponent.executeDeleteTransaction()">ยืนยันลบ</button>
+      </div>
+    </div>
+  </div>
+
   <!-- API Client Component -->
   <script>
 window.ApiClient = {
@@ -1087,6 +1109,11 @@ window.DaySummaryListComponent = {
               '<span>' + item.trip_count + ' เส้นทาง · ' + window.ValidationUtil.formatKm(item.total_km) + ' กม.</span>' +
               '<strong style="color: #fff; font-size: 1rem;">' + window.ValidationUtil.formatCurrency(item.net_total) + ' ฿</strong>' +
             '</div>' +
+            (item.status !== 'APPROVED' ? 
+              '<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); display:flex; justify-content:flex-end;">' +
+                '<button type="button" onclick="event.stopPropagation(); DaySummaryListComponent.promptDeleteTransaction(\'' + item.transaction_id + '\')" style="background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239, 68, 68, 0.2); color:#ef4444; padding:5px 10px; font-size:0.8rem; border-radius:6px; cursor:pointer;">🗑️ ลบรายการนี้</button>' +
+              '</div>' 
+            : '') +
           '</div>';
         }
 
@@ -1124,6 +1151,35 @@ window.DaySummaryListComponent = {
         alert('❌ ไม่สามารถดึงรายละเอียดได้: ' + (res ? res.message : 'Error'));
         window.App.navigateTo('summary_list');
       }
+    });
+  },
+
+  promptDeleteTransaction: function(transactionId) {
+    window.AppState.pendingDeleteTransactionId = transactionId;
+    document.getElementById('modal-delete-transaction').classList.add('active');
+  },
+
+  executeDeleteTransaction: function() {
+    var txId = window.AppState.pendingDeleteTransactionId;
+    if (!txId) return;
+
+    var container = document.getElementById('app-screen-container');
+    if (container) container.innerHTML = '<div style="text-align:center; padding: 40px;"><span class="spinner"></span> กำลังลบข้อมูล...</div>';
+    
+    document.getElementById('modal-delete-transaction').classList.remove('active');
+    
+    window.ApiClient.call('deleteTransaction', txId).then(function(res) {
+      if (res && res.success) {
+        var state = window.AppState;
+        var reqDate = state.selectedDate || (state.masterData ? state.masterData.today_th : '');
+        window.DaySummaryListComponent.loadList(reqDate);
+      } else {
+        alert('❌ ไม่สามารถลบรายการได้: ' + (res ? res.message : 'Error'));
+        window.App.navigateTo('summary_list');
+      }
+    }).catch(function(err) {
+      alert('❌ เกิดข้อผิดพลาด: ' + (err ? err.message : 'Unknown'));
+      window.App.navigateTo('summary_list');
     });
   }
 };

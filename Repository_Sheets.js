@@ -133,6 +133,39 @@ const Repository_Sheets = {
   },
 
   /**
+   * Deletes an entire row identified by transactionId in the Transactions sheet.
+   */
+  deleteRowByTransactionId: function(transactionId) {
+    const sheet = this.getSheet(CONFIG.SHEETS.TRANSACTIONS);
+    const values = sheet.getDataRange().getValues();
+    if (values.length <= 1) {
+      return false;
+    }
+    
+    const headers = values[0];
+    const txIdColIdx = headers.indexOf('Transaction_ID');
+    if (txIdColIdx === -1) {
+      throw new Error('Transaction_ID header column not found.');
+    }
+    
+    let targetRowIndex = -1;
+    for (let i = 1; i < values.length; i++) {
+      if (String(values[i][txIdColIdx]) === String(transactionId)) {
+        targetRowIndex = i + 1; // 1-indexed row
+        break;
+      }
+    }
+    
+    if (targetRowIndex === -1) {
+      return false; // Not found
+    }
+    
+    sheet.deleteRow(targetRowIndex);
+    SpreadsheetApp.flush();
+    return true;
+  },
+
+  /**
    * Overwrites an entire sheet with headers and data rows in a single bulk operation.
    */
   rewriteSheetData: function(sheetName, headers, dataRows) {

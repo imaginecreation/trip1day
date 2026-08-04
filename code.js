@@ -98,6 +98,18 @@ function handleApiRequest(action, data) {
       return submitTransaction(payload);
     }
 
+    case 'deleteTransaction': {
+      let txId = '';
+      if (typeof data === 'string') {
+        txId = data;
+      } else if (Array.isArray(data)) {
+        txId = data[0] || '';
+      } else if (data && typeof data === 'object') {
+        txId = data.transactionId || data.transaction_id || '';
+      }
+      return deleteTransaction(txId);
+    }
+
     case 'initDatabase':
       return initDatabase();
 

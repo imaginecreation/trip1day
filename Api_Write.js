@@ -180,3 +180,46 @@ function submitTransaction(payload) {
     return Util_Response.buildError('SERVER_ERROR', 'เกิดข้อผิดพลาดขณะบันทึกข้อมูล: ' + error.message);
   }
 }
+
+/**
+ * Deletes an entire transaction completely from the system.
+ */
+function deleteTransaction(transactionId) {
+  if (!transactionId || !String(transactionId).trim()) {
+    return Util_Response.buildError('VALIDATION_ERROR', 'ไม่พบรหัสรายการที่ต้องการลบ');
+  }
+  
+  const txId = String(transactionId).trim();
+  const lock = LockService.getScriptLock();
+  const successLock = lock.tryLock(CONFIG.LOCK_TIMEOUT_MS);
+  
+  if (!successLock) {
+    return Util_Response.buildError('CONCURRENT_WRITE_CONFLICT', 'ระบบกำลังประมวลผลข้อมูล โปรดลองใหม่อีกครั้ง');
+  }
+
+  try {
+    const allTx = Repository_Sheets.bulkReadAsObjects(CONFIG.SHEETS.TRANSACTIONS);
+    const tx = allTx.find(t => String(t.Transaction_ID) === txId);
+    
+    if (!tx) {
+      return Util_Response.buildError('NOT_FOUND', 'ไม่พบรายการที่ต้องการลบ (อาจถูกลบไปแล้ว)');
+    }
+    
+    if (String(tx.Status).toUpperCase() === 'APPROVED') {
+      return Util_Response.buildError('VALIDATION_ERROR', 'ไม่สามารถลบรายการที่ได้รับการอนุมัติแล้วได้');
+    }
+
+    const deleted = Repository_Sheets.deleteRowByTransactionId(txId);
+    
+    if (deleted) {
+      return Util_Response.buildSuccess({ message: 'ลบรายการสำเร็จ' });
+    } else {
+      return Util_Response.buildError('SERVER_ERROR', 'เกิดข้อผิดพลาดในการลบรายการบนฐานข้อมูล');
+    }
+  } catch (e) {
+    Logger.log(e);
+    return Util_Response.buildError('SERVER_ERROR', 'เกิดข้อผิดพลาดในการลบรายการ: ' + e.message);
+  } finally {
+    try { lock.releaseLock(); } catch(e) {}
+  }
+}
