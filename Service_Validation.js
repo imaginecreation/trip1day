@@ -23,10 +23,10 @@ const Service_Validation = {
     // Validate Site_ID exists in Active Master_Site
     const sites = Repository_Cache.getCached('MASTER_SITE_ACTIVE', function() {
       const allSites = Repository_Sheets.bulkReadAsObjects(CONFIG.SHEETS.MASTER_SITE);
-      return allSites.filter(s => String(s.Active).toUpperCase() === 'TRUE');
+      return allSites.filter(s => Repository_Sheets.isActiveRow(s));
     });
 
-    const validSite = sites.find(s => String(s.Site_ID) === String(payload.site_id));
+    const validSite = sites.find(s => String(s.Site_ID).trim() === String(payload.site_id).trim());
     if (!validSite) {
       return Util_Response.buildError('VALIDATION_ERROR', 'SITE งานที่เลือกไม่ถูกต้อง หรือยกเลิกการใช้งานแล้ว');
     }
@@ -34,10 +34,10 @@ const Service_Validation = {
     // Validate Approver exists in Active Approve_users
     const approvers = Repository_Cache.getCached('APPROVE_USERS_ACTIVE', function() {
       const allApp = Repository_Sheets.bulkReadAsObjects(CONFIG.SHEETS.APPROVE_USERS);
-      return allApp.filter(a => String(a.Active).toUpperCase() === 'TRUE');
+      return allApp.filter(a => Repository_Sheets.isActiveRow(a));
     });
 
-    const validApprover = approvers.find(a => String(a.approve_request) === String(payload.approver));
+    const validApprover = approvers.find(a => String(a.approve_request).trim() === String(payload.approver).trim());
     if (!validApprover) {
       return Util_Response.buildError('VALIDATION_ERROR', 'ผู้อนุมัติที่เลือกไม่ถูกต้อง หรือยกเลิกการใช้งานแล้ว');
     }
@@ -54,7 +54,7 @@ const Service_Validation = {
     // Load active routes for route verification
     const activeRoutes = Repository_Cache.getCached('MASTER_ROUTES_ACTIVE', function() {
       const allRoutes = Repository_Sheets.bulkReadAsObjects(CONFIG.SHEETS.MASTER_ROUTES);
-      return allRoutes.filter(r => String(r.Active).toUpperCase() === 'TRUE');
+      return allRoutes.filter(r => Repository_Sheets.isActiveRow(r));
     });
 
     // Validate each trip card

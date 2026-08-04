@@ -13,7 +13,7 @@ function getDataOnLoad(lineUserId) {
     // 1. Master_Site (Active = TRUE, sorted by Site_Name A-Z / ก-ฮ)
     const masterSite = Repository_Cache.getCached('MASTER_SITE_ACTIVE', function() {
       const allSites = Repository_Sheets.bulkReadAsObjects(CONFIG.SHEETS.MASTER_SITE);
-      const activeSites = allSites.filter(s => String(s.Active).toUpperCase() === 'TRUE');
+      const activeSites = allSites.filter(s => Repository_Sheets.isActiveRow(s));
       // Sort alphabetically by Site_Name (Thai locale collator)
       activeSites.sort((a, b) => String(a.Site_Name || '').localeCompare(String(b.Site_Name || ''), 'th'));
       return activeSites;
@@ -22,7 +22,7 @@ function getDataOnLoad(lineUserId) {
     // 2. Master_Routes (Active = TRUE)
     const masterRoutes = Repository_Cache.getCached('MASTER_ROUTES_ACTIVE', function() {
       const allRoutes = Repository_Sheets.bulkReadAsObjects(CONFIG.SHEETS.MASTER_ROUTES);
-      return allRoutes.filter(r => String(r.Active).toUpperCase() === 'TRUE');
+      return allRoutes.filter(r => Repository_Sheets.isActiveRow(r));
     });
 
     // 3. Master_Config
@@ -43,7 +43,7 @@ function getDataOnLoad(lineUserId) {
     // 5. Approve_users (Active = TRUE)
     const approveUsers = Repository_Cache.getCached('APPROVE_USERS_ACTIVE', function() {
       const allApp = Repository_Sheets.bulkReadAsObjects(CONFIG.SHEETS.APPROVE_USERS);
-      return allApp.filter(a => String(a.Active).toUpperCase() === 'TRUE');
+      return allApp.filter(a => Repository_Sheets.isActiveRow(a));
     });
 
     // 6. User Profile lookup (Fresh query per user)

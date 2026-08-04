@@ -1185,6 +1185,8 @@ window.App = {
           window.AppState.plateNo = res.data.userProfile.car_no || window.AppState.plateNo;
         } else if (window.AppState.lineDisplayName) {
           window.AppState.requesterName = window.AppState.lineDisplayName;
+        } else if (!window.AppState.requesterName) {
+          window.AppState.requesterName = 'สุวัฒน์ Pingly';
         }
 
         App.navigateTo('summary_list');

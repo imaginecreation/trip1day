@@ -68,11 +68,34 @@ const Repository_Sheets = {
   },
 
   /**
+   * Helper to check if a row is active (defaults to true if column is missing/blank).
+   */
+  isActiveRow: function(row) {
+    if (!row) return false;
+    if (row.Active === undefined || row.Active === null || String(row.Active).trim() === '') return true;
+    const val = String(row.Active).trim().toUpperCase();
+    return val === 'TRUE' || val === '1' || val === 'YES' || val === 'Y';
+  },
+
+  /**
+   * Sanitizes values to prevent Formula Injection in Google Sheets.
+   */
+  sanitizeFormulaValues: function(rowValues) {
+    return rowValues.map(function(val) {
+      if (typeof val === 'string' && (val.startsWith('=') || val.startsWith('+') || val.startsWith('-') || val.startsWith('@'))) {
+        return "'" + val;
+      }
+      return val;
+    });
+  },
+
+  /**
    * Appends a new row to the specified sheet.
    */
   appendRow: function(sheetName, rowValues) {
     const sheet = this.getSheet(sheetName);
-    sheet.appendRow(rowValues);
+    const sanitized = this.sanitizeFormulaValues(rowValues);
+    sheet.appendRow(sanitized);
     SpreadsheetApp.flush();
   },
 
