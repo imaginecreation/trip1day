@@ -104,6 +104,7 @@ function submitTransaction(payload) {
         ];
 
         Repository_Sheets.appendRow(CONFIG.SHEETS.TRANSACTIONS, newRow);
+        Repository_Cache.clearCache('TRANSACTIONS_ALL');
 
         return Util_Response.buildSuccess({
           transaction_id: newTxId,
@@ -154,6 +155,8 @@ function submitTransaction(payload) {
         if (!updated) {
           return Util_Response.buildError('SERVER_ERROR', 'ไม่สามารถบันทึกแก้ไขข้อมูลในตารางได้');
         }
+
+        Repository_Cache.clearCache('TRANSACTIONS_ALL');
 
         return Util_Response.buildSuccess({
           transaction_id: targetTxId,

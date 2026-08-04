@@ -92,7 +92,9 @@ function listTransactionsByDate(dateStr, lineUserId) {
     const targetDate = Util_Date.formatDateBangkok(dateStr);
     const userId = lineUserId ? String(lineUserId).trim() : '';
 
-    const allTx = Repository_Sheets.bulkReadAsObjects(CONFIG.SHEETS.TRANSACTIONS);
+    const allTx = Repository_Cache.getCached('TRANSACTIONS_ALL', function() {
+      return Repository_Sheets.bulkReadAsObjects(CONFIG.SHEETS.TRANSACTIONS);
+    });
     const matched = allTx.filter(tx => {
       const txDate = Util_Date.formatDateBangkok(tx.Req_Date);
       return txDate === targetDate && (userId === '' || String(tx.Req_LINE_UserId) === userId);
@@ -135,7 +137,9 @@ function getTransactionDetail(transactionId) {
       return Util_Response.buildError('VALIDATION_ERROR', 'กรุณาระบุ Transaction ID');
     }
 
-    const allTx = Repository_Sheets.bulkReadAsObjects(CONFIG.SHEETS.TRANSACTIONS);
+    const allTx = Repository_Cache.getCached('TRANSACTIONS_ALL', function() {
+      return Repository_Sheets.bulkReadAsObjects(CONFIG.SHEETS.TRANSACTIONS);
+    });
     const tx = allTx.find(t => String(t.Transaction_ID) === String(transactionId).trim());
 
     if (!tx) {
