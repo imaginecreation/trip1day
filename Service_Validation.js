@@ -20,6 +20,10 @@ const Service_Validation = {
       return Util_Response.buildError('VALIDATION_ERROR', 'กรุณาเลือกผู้อนุมัติ');
     }
 
+    if (!payload.travel_purpose || !String(payload.travel_purpose).trim()) {
+      return Util_Response.buildError('VALIDATION_ERROR', 'กรุณาระบุวัตถุประสงค์การเดินทาง');
+    }
+
     // Validate Site_ID exists in Active Master_Site
     const sites = Repository_Cache.getCached('MASTER_SITE_ACTIVE', function() {
       const allSites = Repository_Sheets.bulkReadAsObjects(CONFIG.SHEETS.MASTER_SITE);

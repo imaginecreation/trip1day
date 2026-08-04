@@ -528,10 +528,12 @@ window.ValidationUtil = {
     var siteId = state.selectedSiteId || state.site_id;
     var approver = state.selectedApprover || state.approver;
     var reqName = state.requesterName || state.req_name;
+    var purpose = state.travelPurpose || state.travel_purpose;
 
     if (!siteId || !String(siteId).trim()) errors.push({ field: 'site_id', message: 'กรุณาเลือก SITE งาน' });
     if (!approver || !String(approver).trim()) errors.push({ field: 'approver', message: 'กรุณาเลือกผู้อนุมัติ' });
     if (!reqName || !String(reqName).trim()) errors.push({ field: 'req_name', message: 'กรุณาระบุชื่อผู้ขอเบิก' });
+    if (!purpose || !String(purpose).trim()) errors.push({ field: 'travel_purpose', message: 'กรุณาระบุวัตถุประสงค์การเดินทาง' });
 
     if (!state.trips || !Array.isArray(state.trips) || state.trips.length === 0) {
       errors.push({ field: 'trips', message: 'ต้องมีอย่างน้อย 1 เส้นทางการเดินทาง' });
@@ -763,7 +765,7 @@ window.TripFormComponent = {
 
     '<div class="glass-card">' +
       '<div class="form-group">' +
-        '<label>วัตถุประสงค์การเดินทาง</label>' +
+        '<label>วัตถุประสงค์การเดินทาง <span style="color:#ef4444;">*</span></label>' +
         '<input type="text" id="input-purpose" class="form-control" value="' + (state.travelPurpose || '') + '" ' + (isEditLocked ? 'readonly' : '') + ' placeholder="เช่น ติดต่อลูกค้า / ซ่อมแซมระบบ">' +
       '</div>' +
 
