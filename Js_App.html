@@ -112,6 +112,7 @@ window.App = {
             if (profile && profile.userId) {
               window.AppState.lineUserId = profile.userId;
               if (profile.displayName) {
+                window.AppState.lineDisplayName = profile.displayName;
                 window.AppState.requesterName = profile.displayName;
               }
             }
@@ -137,9 +138,11 @@ window.App = {
         window.AppState.masterData = res.data;
         window.AppState.selectedDate = res.data.today_th;
 
-        if (res.data.userProfile) {
-          window.AppState.requesterName = res.data.userProfile.requester_name || window.AppState.requesterName;
+        if (res.data.userProfile && res.data.userProfile.requester_name && res.data.userProfile.requester_name.trim() !== '') {
+          window.AppState.requesterName = res.data.userProfile.requester_name;
           window.AppState.plateNo = res.data.userProfile.car_no || window.AppState.plateNo;
+        } else if (window.AppState.lineDisplayName) {
+          window.AppState.requesterName = window.AppState.lineDisplayName;
         }
 
         App.navigateTo('summary_list');
