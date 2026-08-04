@@ -17,7 +17,7 @@ function doGet(e) {
   // Default: Serve HTML Template
   return HtmlService.createTemplateFromFile('index')
     .evaluate()
-    .setTitle('ระบบบันทึกเบิกค่าเดินทาง')
+    .setTitle('ระบบบันทึกเบิกค่าเดินทาง ver.2.0')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }

@@ -6,7 +6,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ระบบบันทึกเบิกค่าเดินทาง</title>
+  <title>ระบบบันทึกเบิกค่าเดินทาง ver.2.0</title>
 
   <!-- Pinned LINE LIFF SDK version 2.22.4 (2026-07-31) — See Section 5.3 of Spec v10.1 -->
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -423,17 +423,6 @@ select.form-control {
     </div>
   </div>
 
-  <div id="modal-delete-transaction" class="modal-overlay">
-    <div class="modal-box">
-      <div class="modal-title">⚠️ ยืนยันการลบรายการ</div>
-      <div class="modal-desc">คุณต้องการลบรายการเบิกนี้ใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้</div>
-      <div class="modal-actions">
-        <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-delete-transaction').classList.remove('active')">ยกเลิก</button>
-        <button type="button" class="btn btn-primary" style="background:#ef4444;" onclick="DaySummaryListComponent.executeDeleteTransaction()">ยืนยันลบ</button>
-      </div>
-    </div>
-  </div>
-
   <!-- API Client Component -->
   <script>
 window.ApiClient = {
@@ -735,7 +724,7 @@ window.TripFormComponent = {
 
     var html = '' +
     '<div class="glass-card">' +
-      '<div class="card-header-title">📋 บันทึกเบิกค่าเดินทาง</div>' +
+      '<div class="card-header-title">📋 บันทึกเบิกค่าเดินทาง ver.2.0</div>' +
       (isEditLocked ? '<div class="badge badge-success" style="width: 100%; justify-center; padding: 10px; margin-bottom: 14px; font-size: 0.9rem;">🔒 รายการนี้ได้รับการอนุมัติแล้ว (Read-Only)</div>' : '') +
 
       '<div class="form-group">' +
@@ -807,7 +796,7 @@ window.TripFormComponent = {
     '<div class="summary-box">' +
       '<div class="summary-row"><span>ระยะทางรวม:</span><strong id="summary-total-km">0.0 กม.</strong></div>' +
       '<div class="summary-row"><span>อัตราเบิก:</span><strong id="summary-rate">0.00 บาท/กม.</strong></div>' +
-      '<div class="summary-row"><span>ค่ารถเหมา:</span><strong id="summary-flat-fee">0.00 บาท</strong></div>' +
+      '<div class="summary-row"><span>ค่ารถ:</span><strong id="summary-flat-fee">0.00 บาท</strong></div>' +
       '<div class="summary-row total-net"><span>ยอดเบิกสุทธิ:</span><strong id="summary-net-total">0.00 บาท</strong></div>' +
     '</div>' +
 
@@ -1039,9 +1028,14 @@ window.DaySummaryListComponent = {
     var currentDate = state.selectedDate || (state.masterData ? state.masterData.today_th : '');
 
     var html = '' +
+    '<div style="text-align:center; padding: 6px 0 14px 0;">' +
+      '<div style="font-size: 1.2rem; font-weight: 700; color: #f8fafc; display: flex; align-items: center; justify-content: center; gap: 8px;">' +
+        '<span>🚗</span> <span>ระบบบันทึกเบิกค่าเดินทาง</span> <span style="background: rgba(99, 102, 241, 0.2); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; font-weight: 600;">ver.2.0</span>' +
+      '</div>' +
+    '</div>' +
     '<div class="glass-card">' +
       '<div style="display:flex; justify-content:space-between; align-items:center;">' +
-        '<div class="card-header-title">📅 วันที่เบิก</div>' +
+        '<div class="card-header-title">📅 วันที่เดินทาง</div>' +
         '<button onclick="window.App.loadMasterData(true)" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); border-radius:12px; padding: 4px 10px; color:#e2e8f0; cursor:pointer; font-size:0.8rem; display:flex; align-items:center; gap:5px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"></path><path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path><path d="M3 22v-6h6"></path><path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path></svg> ซิงค์ข้อมูล</button>' +
       '</div>' +
       '<div class="form-group" style="margin-top:10px;">' +
@@ -1059,6 +1053,8 @@ window.DaySummaryListComponent = {
     var state = window.AppState;
     var container = document.getElementById('summary-cards-container');
     if (!container) return;
+
+    container.innerHTML = '<div style="text-align:center; padding: 20px;"><span class="spinner"></span> กำลังโหลดข้อมูล...</div>';
 
     window.ApiClient.call('listTransactionsByDate', { dateStr: dateStr, lineUserId: state.lineUserId }).then(function(res) {
       if (!res || !res.success) {
