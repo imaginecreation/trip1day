@@ -115,12 +115,7 @@ window.TripFormComponent = {
       '<div class="summary-row total-net"><span>ยอดเบิกสุทธิ:</span><strong id="summary-net-total">0.00 บาท</strong></div>' +
     '</div>' +
 
-    // Submit / Back Buttons
-    (!isEditLocked ? 
-      '<button type="button" id="btn-submit-tx" class="btn btn-primary" onclick="TripFormComponent.handleSubmit()">' +
-        '💾 บันทึกข้อมูลและส่งขออนุมัติ' +
-      '</button>' 
-    : '') +
+    /* Removed inner submit button to prevent double-click issues. Only sticky button is used. */
 
     '<button type="button" class="btn btn-secondary" style="margin-top: 10px;" onclick="App.navigateTo(\'summary_list\')">' +
       '⬅️ ย้อนกลับไปหน้าสรุปประจำวัน' +
@@ -328,8 +323,13 @@ window.TripFormComponent = {
 
     // UI Loading state
     var btnSubmit = document.getElementById('btn-submit-tx');
-    btnSubmit.disabled = true;
-    btnSubmit.innerHTML = '<span class="spinner"></span> กำลังบันทึกข้อมูล...';
+    if (btnSubmit) btnSubmit.disabled = true;
+
+    var overlay = document.getElementById('global-loading-overlay');
+    if (overlay) {
+      document.getElementById('global-loading-text').innerText = 'กำลังบันทึกข้อมูล...';
+      overlay.style.display = 'flex';
+    }
 
     var payload = {
       transaction_id: state.currentTxId || null,
@@ -347,15 +347,19 @@ window.TripFormComponent = {
     };
 
     window.ApiClient.call('submitTransaction', payload).then(function(res) {
-      btnSubmit.disabled = false;
-      btnSubmit.innerHTML = '💾 บันทึกข้อมูลและส่งขออนุมัติ';
+      if (btnSubmit) btnSubmit.disabled = false;
+      if (overlay) overlay.style.display = 'none';
 
       if (res && res.success) {
         alert('✅ ' + (res.data ? res.data.message : 'บันทึกสำเร็จ'));
         window.App.navigateTo('summary_list');
       } else {
-        alert('❌ ไม่สามารถบันทึกได้ (' + (res ? res.error_code : 'ERROR') + '): ' + (res ? res.message : 'เกิดข้อผิดพลาด'));
+        alert('❌ ไม่สามารถบันทึกได้: ' + (res ? res.message : 'เกิดข้อผิดพลาด'));
       }
+    }).catch(function(err) {
+      if (btnSubmit) btnSubmit.disabled = false;
+      if (overlay) overlay.style.display = 'none';
+      alert('❌ เกิดข้อผิดพลาดที่ไม่คาดคิด: ' + (err ? err.message : 'Unknown'));
     });
   }
 };

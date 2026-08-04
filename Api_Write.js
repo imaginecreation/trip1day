@@ -30,7 +30,9 @@ function submitTransaction(payload) {
     // Lookup user profile group_car (default 1)
     let groupCar = 1;
     if (lineUserId) {
-      const profiles = Repository_Sheets.bulkReadAsObjects(CONFIG.SHEETS.USERS_PROFILE);
+      const profiles = Repository_Cache.getCached('USERS_PROFILE_ALL', function() {
+        return Repository_Sheets.bulkReadAsObjects(CONFIG.SHEETS.USERS_PROFILE);
+      });
       const matchProf = profiles.find(p => String(p.Line_uid) === lineUserId);
       if (matchProf && matchProf.group_car) {
         groupCar = Number(matchProf.group_car);
