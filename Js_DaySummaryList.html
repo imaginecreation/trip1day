@@ -36,7 +36,13 @@ window.DaySummaryListComponent = {
 
     window.ApiClient.call('listTransactionsByDate', dateStr, state.lineUserId).then(function(res) {
       if (!res || !res.success) {
-        container.innerHTML = '<div class="glass-card" style="text-align:center; color:#f87171;">ไม่สามารถโหลดรายการได้: ' + (res ? res.message : 'Error') + '</div>';
+        container.innerHTML = '' +
+        '<div class="glass-card" style="text-align:center; padding: 20px;">' +
+          '<div style="color:#f87171; margin-bottom: 12px;">ไม่สามารถโหลดรายการได้: ' + (res ? res.message : 'Error') + '</div>' +
+          '<button type="button" class="btn btn-primary" onclick="DaySummaryListComponent.handleCreateNewRecord()">' +
+            '➕ เริ่มบันทึกการเดินทาง' +
+          '</button>' +
+        '</div>';
         return;
       }
 

@@ -83,17 +83,17 @@ function getDataOnLoad(lineUserId) {
  */
 function listTransactionsByDate(dateStr, lineUserId) {
   try {
-    if (!dateStr || !lineUserId) {
-      return Util_Response.buildError('VALIDATION_ERROR', 'กรุณาระบุวันที่และ User ID');
+    if (!dateStr) {
+      return Util_Response.buildError('VALIDATION_ERROR', 'กรุณาระบุวันที่');
     }
 
     const targetDate = Util_Date.formatDateBangkok(dateStr);
-    const userId = String(lineUserId).trim();
+    const userId = lineUserId ? String(lineUserId).trim() : '';
 
     const allTx = Repository_Sheets.bulkReadAsObjects(CONFIG.SHEETS.TRANSACTIONS);
     const matched = allTx.filter(tx => {
       const txDate = Util_Date.formatDateBangkok(tx.Req_Date);
-      return txDate === targetDate && String(tx.Req_LINE_UserId) === userId;
+      return txDate === targetDate && (userId === '' || String(tx.Req_LINE_UserId) === userId);
     });
 
     const summaries = matched.map(tx => {
