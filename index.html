@@ -640,7 +640,7 @@ window.TripFormComponent = {
       (isEditLocked ? '<div class="badge badge-success" style="width: 100%; justify-center; padding: 10px; margin-bottom: 14px; font-size: 0.9rem;">🔒 รายการนี้ได้รับการอนุมัติแล้ว (Read-Only)</div>' : '') +
 
       '<div class="form-group">' +
-        '<label>ชื่อผู้ขอเบิก</label>' +
+        '<label>ชื่อผู้ขอเบิก <span style="color:#ef4444;">*</span></label>' +
         '<input type="text" id="input-req-name" class="form-control" value="' + (state.requesterName || '') + '" ' + (isEditLocked ? 'readonly' : '') + ' placeholder="ระบุชื่อ-นามสกุล">' +
       '</div>' +
 
@@ -655,7 +655,7 @@ window.TripFormComponent = {
       '</div>' +
 
       '<div class="form-group">' +
-        '<label>SITE งาน ' + (state.currentTxId ? '🔒 (ล็อกหลังบันทึก)' : '') + '</label>' +
+        '<label>SITE งาน <span style="color:#ef4444;">*</span> ' + (state.currentTxId ? '🔒 (ล็อกหลังบันทึก)' : '') + '</label>' +
         '<select id="select-site-id" class="form-control" ' + (state.currentTxId || isEditLocked ? 'disabled' : '') + ' onchange="TripFormComponent.handleSiteChange(this.value)">' +
           siteOptions +
         '</select>' +
@@ -698,7 +698,7 @@ window.TripFormComponent = {
       '</div>' +
 
       '<div class="form-group" style="margin-top: 14px;">' +
-        '<label>ส่งขออนุมัติไปยัง</label>' +
+        '<label>ส่งขออนุมัติไปยัง <span style="color:#ef4444;">*</span></label>' +
         '<select id="select-approver" class="form-control" ' + (isEditLocked ? 'disabled' : '') + '>' +
           approverOptions +
         '</select>' +
@@ -865,9 +865,30 @@ window.TripFormComponent = {
     state.flatRateFee = document.getElementById('chk-flat-rate').checked ? (state.masterData.masterConfig ? parseFloat(state.masterData.masterConfig.FLAT_RATE_FEE || 150) : 150) : 0;
     state.selectedApprover = document.getElementById('select-approver').value;
 
+    ['input-req-name', 'select-site-id', 'select-approver'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+    });
+
     var errors = window.ValidationUtil.validateFormState(state);
     if (errors.length > 0) {
-      alert('⚠️ โปรดตรวจสอบข้อมูล:\n- ' + errors.map(function(e) { return e.message; }).join('\n- '));
+      var firstErrorEl = null;
+      errors.forEach(function(e) {
+        var elId = e.field === 'site_id' ? 'select-site-id' : (e.field === 'approver' ? 'select-approver' : (e.field === 'req_name' ? 'input-req-name' : null));
+        if (elId) {
+          var el = document.getElementById(elId);
+          if (el) {
+            el.style.borderColor = '#ef4444';
+            if (!firstErrorEl) firstErrorEl = el;
+          }
+        }
+      });
+
+      alert('⚠️ โปรดตรวจสอบข้อมูลที่จำเป็นให้ครบถ้วน:\n- ' + errors.map(function(e) { return e.message; }).join('\n- '));
+      if (firstErrorEl) {
+        firstErrorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        firstErrorEl.focus();
+      }
       return;
     }
 
