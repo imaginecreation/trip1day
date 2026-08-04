@@ -11,15 +11,19 @@ window.ValidationUtil = {
   validateFormState: function(state) {
     var errors = [];
 
-    if (!state.site_id) {
+    var siteId = state.selectedSiteId || state.site_id;
+    var approver = state.selectedApprover || state.approver;
+    var reqName = state.requesterName || state.req_name;
+
+    if (!siteId || !String(siteId).trim()) {
       errors.push({ field: 'site_id', message: 'กรุณาเลือก SITE งาน' });
     }
 
-    if (!state.approver) {
+    if (!approver || !String(approver).trim()) {
       errors.push({ field: 'approver', message: 'กรุณาเลือกผู้อนุมัติ' });
     }
 
-    if (!state.req_name || !state.req_name.trim()) {
+    if (!reqName || !String(reqName).trim()) {
       errors.push({ field: 'req_name', message: 'กรุณาระบุชื่อผู้ขอเบิก' });
     }
 
