@@ -34,7 +34,7 @@ window.DaySummaryListComponent = {
     var container = document.getElementById('summary-cards-container');
     if (!container) return;
 
-    window.ApiClient.call('listTransactionsByDate', dateStr, state.lineUserId).then(function(res) {
+    window.ApiClient.call('listTransactionsByDate', { dateStr: dateStr, lineUserId: state.lineUserId }).then(function(res) {
       if (!res || !res.success) {
         container.innerHTML = '' +
         '<div class="glass-card" style="text-align:center; padding: 20px;">' +

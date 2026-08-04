@@ -53,21 +53,54 @@ function doPost(e) {
  */
 function handleApiRequest(action, data) {
   switch (action) {
-    case 'getDataOnLoad':
-      return getDataOnLoad(data.lineUserId || data.line_user_id);
-    
-    case 'listTransactionsByDate':
-      return listTransactionsByDate(data.dateStr || data.date, data.lineUserId || data.line_user_id);
-    
-    case 'getTransactionDetail':
-      return getTransactionDetail(data.transactionId || data.transaction_id);
-    
-    case 'submitTransaction':
-      return submitTransaction(data.payload || data);
-    
+    case 'getDataOnLoad': {
+      let uid = '';
+      if (typeof data === 'string') {
+        uid = data;
+      } else if (Array.isArray(data)) {
+        uid = data[0] || '';
+      } else if (data && typeof data === 'object') {
+        uid = data.lineUserId || data.line_user_id || '';
+      }
+      return getDataOnLoad(uid);
+    }
+
+    case 'listTransactionsByDate': {
+      let dateVal = '';
+      let userVal = '';
+      if (Array.isArray(data)) {
+        dateVal = data[0] || '';
+        userVal = data[1] || '';
+      } else if (data && typeof data === 'object') {
+        dateVal = data.dateStr || data.date || '';
+        userVal = data.lineUserId || data.line_user_id || '';
+      }
+      return listTransactionsByDate(dateVal, userVal);
+    }
+
+    case 'getTransactionDetail': {
+      let txId = '';
+      if (typeof data === 'string') {
+        txId = data;
+      } else if (Array.isArray(data)) {
+        txId = data[0] || '';
+      } else if (data && typeof data === 'object') {
+        txId = data.transactionId || data.transaction_id || '';
+      }
+      return getTransactionDetail(txId);
+    }
+
+    case 'submitTransaction': {
+      let payload = (data && data.payload) ? data.payload : data;
+      if (Array.isArray(payload) && payload.length === 1) {
+        payload = payload[0];
+      }
+      return submitTransaction(payload);
+    }
+
     case 'initDatabase':
       return initDatabase();
-      
+
     default:
       return Util_Response.buildError('INVALID_ACTION', 'Action ' + action + ' is not supported.');
   }
