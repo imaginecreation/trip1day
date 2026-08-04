@@ -451,9 +451,13 @@ window.ApiClient = {
   callFetchWithRetry: function(action, data, attempt) {
     var self = this;
     return this.callFetch(action, data).then(function(result) {
-      if (result && result.error_code === 'NETWORK_ERROR' && attempt < self.MAX_RETRIES) {
-        console.warn('ApiClient: Retrying ' + action + ' (attempt ' + (attempt + 2) + ')...');
-        return self.callFetch(action, data);
+      if (result && (result.error_code === 'NETWORK_ERROR' || result.error_code === 'PARSE_ERROR') && attempt < self.MAX_RETRIES) {
+        console.warn('ApiClient: Retrying ' + action + ' (attempt ' + (attempt + 2) + ') due to ' + result.error_code + '...');
+        return new Promise(function(resolve) {
+          setTimeout(function() {
+            resolve(self.callFetchWithRetry(action, data, attempt + 1));
+          }, 1500); // 1.5s delay to let Google servers recover
+        });
       }
       return result;
     });
