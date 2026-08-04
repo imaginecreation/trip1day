@@ -4,13 +4,33 @@
  */
 
 const Repository_Cache = {
+  CHUNK_SIZE: 50000, // Safe limit for CacheService 100KB limit
+
   /**
    * Retrieves data from CacheService or executes loaderFn and stores result.
    */
   getCached: function(key, loaderFn, ttlSeconds) {
     const cache = CacheService.getScriptCache();
-    const cachedStr = cache.get(key);
     
+    // First try to read as chunked data
+    const metaStr = cache.get(key + '_meta');
+    if (metaStr) {
+      try {
+        const meta = JSON.parse(metaStr);
+        let fullString = '';
+        for (let i = 0; i < meta.chunks; i++) {
+          const chunk = cache.get(key + '_' + i);
+          if (!chunk) throw new Error('Missing chunk ' + i);
+          fullString += chunk;
+        }
+        return JSON.parse(fullString);
+      } catch (e) {
+        Logger.log('Cache parse chunk error for key ' + key + ': ' + e.message);
+      }
+    }
+    
+    // Fallback: Check standard single-key cache
+    const cachedStr = cache.get(key);
     if (cachedStr) {
       try {
         return JSON.parse(cachedStr);
@@ -23,7 +43,19 @@ const Repository_Cache = {
     if (freshData !== undefined && freshData !== null) {
       const ttl = ttlSeconds || CONFIG.CACHE_TTL_SECONDS;
       try {
-        cache.put(key, JSON.stringify(freshData), ttl);
+        const jsonStr = JSON.stringify(freshData);
+        if (jsonStr.length > Repository_Cache.CHUNK_SIZE) {
+          const numChunks = Math.ceil(jsonStr.length / Repository_Cache.CHUNK_SIZE);
+          const chunksToPut = {};
+          chunksToPut[key + '_meta'] = JSON.stringify({ chunks: numChunks });
+          for (let i = 0; i < numChunks; i++) {
+            const start = i * Repository_Cache.CHUNK_SIZE;
+            chunksToPut[key + '_' + i] = jsonStr.substring(start, start + Repository_Cache.CHUNK_SIZE);
+          }
+          cache.putAll(chunksToPut, ttl);
+        } else {
+          cache.put(key, jsonStr, ttl);
+        }
       } catch (e) {
         Logger.log('Cache put error for key ' + key + ': ' + e.message);
       }
@@ -33,11 +65,22 @@ const Repository_Cache = {
   },
 
   /**
-   * Clears specific cache key.
+   * Clears specific cache key (including chunks).
    */
   clearCache: function(key) {
     try {
-      CacheService.getScriptCache().remove(key);
+      const cache = CacheService.getScriptCache();
+      const metaStr = cache.get(key + '_meta');
+      if (metaStr) {
+        try {
+          const meta = JSON.parse(metaStr);
+          for (let i = 0; i < meta.chunks; i++) {
+            cache.remove(key + '_' + i);
+          }
+          cache.remove(key + '_meta');
+        } catch (e) {}
+      }
+      cache.remove(key);
     } catch (e) {
       Logger.log('Cache remove error for key ' + key + ': ' + e.message);
     }
