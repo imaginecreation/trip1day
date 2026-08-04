@@ -1,0 +1,131 @@
+<script>
+/**
+ * Js_DaySummaryList.html — Day Summary List Component (Entry Point Screen)
+ * Mileage Reimbursement System (v10.1)
+ */
+
+window.DaySummaryListComponent = {
+  /**
+   * Renders the Day Summary List Screen.
+   */
+  renderScreen: function(containerEl) {
+    var state = window.AppState;
+    var currentDate = state.selectedDate || (state.masterData ? state.masterData.today_th : '');
+
+    var html = '' +
+    '<div class="glass-card">' +
+      '<div class="card-header-title">📅 เลือกวันที่เพื่อดูรายการเบิก</div>' +
+      '<div class="form-group">' +
+        '<input type="date" id="summary-date-picker" class="form-control" value="' + currentDate + '" onchange="DaySummaryListComponent.handleDateChange(this.value)">' +
+      '</div>' +
+    '</div>' +
+
+    '<div id="summary-cards-container"><div style="text-align:center; padding: 20px;"><span class="spinner"></span> กำลังโหลดข้อมูล...</div></div>';
+
+    containerEl.innerHTML = html;
+    this.loadList(currentDate);
+  },
+
+  /**
+   * Loads transactions list for date and renders cards or empty state.
+   */
+  loadList: function(dateStr) {
+    var state = window.AppState;
+    var container = document.getElementById('summary-cards-container');
+    if (!container) return;
+
+    window.ApiClient.call('listTransactionsByDate', dateStr, state.lineUserId).then(function(res) {
+      if (!res || !res.success) {
+        container.innerHTML = '<div class="glass-card" style="text-align:center; color:#f87171;">ไม่สามารถโหลดรายการได้: ' + (res ? res.message : 'Error') + '</div>';
+        return;
+      }
+
+      var items = res.data || [];
+      state.dailyTransactions = items;
+
+      if (items.length === 0) {
+        // Empty State (Section 3.0 point 3)
+        container.innerHTML = '' +
+        '<div class="glass-card" style="text-align: center; padding: 30px 20px;">' +
+          '<div style="font-size: 3rem; margin-bottom: 10px;">🚗</div>' +
+          '<div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 6px;">ยังไม่มีรายการเบิกสำหรับวันนี้</div>' +
+          '<div style="color: var(--text-muted); margin-bottom: 20px; font-size: 0.85rem;">เริ่มต้นบันทึกการเดินทางประจำวันสำหรับ Site งานของคุณ</div>' +
+          '<button type="button" class="btn btn-primary" onclick="DaySummaryListComponent.handleCreateNewRecord()">' +
+            '➕ เริ่มบันทึกการเดินทาง' +
+          '</button>' +
+        '</div>';
+      } else {
+        // List Cards (Section 3.0 point 4)
+        var html = '<div class="card-header-title" style="margin-left: 4px;">รายการเบิกตาม Site งาน (' + items.length + ')</div>';
+
+        for (var i = 0; i < items.length; i++) {
+          var item = items[i];
+          var statusBadge = '';
+          if (item.status === 'APPROVED') {
+            statusBadge = '<span class="badge badge-success">🟢 อนุมัติแล้ว</span>';
+          } else if (item.status === 'REJECTED') {
+            statusBadge = '<span class="badge badge-danger">🔴 ปฏิเสธ</span>';
+          } else {
+            statusBadge = '<span class="badge badge-warning">🟡 รออนุมัติ</span>';
+          }
+
+          html += '' +
+          '<div class="glass-card" style="cursor: pointer;" onclick="DaySummaryListComponent.handleSelectRecord(\'' + item.transaction_id + '\')">' +
+            '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">' +
+              '<div style="font-weight: 700; font-size: 1.05rem; color: #38bdf8;">📍 ' + item.site_name + '</div>' +
+              statusBadge +
+            '</div>' +
+            '<div style="display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.9rem;">' +
+              '<span>' + item.trip_count + ' เส้นทาง · ' + window.ValidationUtil.formatKm(item.total_km) + ' กม.</span>' +
+              '<strong style="color: #fff; font-size: 1rem;">' + window.ValidationUtil.formatCurrency(item.net_total) + ' ฿</strong>' +
+            '</div>' +
+          '</div>';
+        }
+
+        html += '' +
+        '<button type="button" class="btn btn-primary" style="margin-top: 8px;" onclick="DaySummaryListComponent.handleCreateNewRecord()">' +
+          '➕ เพิ่ม Site ใหม่' +
+        '</button>';
+
+        container.innerHTML = html;
+      }
+    });
+  },
+
+  /**
+   * Event Handler: Date Picker Change
+   */
+  handleDateChange: function(newDateStr) {
+    window.AppState.selectedDate = newDateStr;
+    this.loadList(newDateStr);
+  },
+
+  /**
+   * Event Handler: Create New Record (+ เพิ่ม Site ใหม่)
+   */
+  handleCreateNewRecord: function() {
+    var state = window.AppState;
+    state.resetFormState();
+    window.App.navigateTo('trip_form');
+  },
+
+  /**
+   * Event Handler: Select existing record to view/edit
+   */
+  handleSelectRecord: function(transactionId) {
+    var state = window.AppState;
+    container = document.getElementById('app-screen-container');
+    if (container) container.innerHTML = '<div style="text-align:center; padding: 40px;"><span class="spinner"></span> กำลังดึงข้อมูลรายการ...</div>';
+
+    window.ApiClient.call('getTransactionDetail', transactionId).then(function(res) {
+      if (res && res.success && res.data) {
+        state.loadTransactionDetailIntoState(res.data);
+        window.App.navigateTo('trip_form');
+      } else {
+        alert('❌ ไม่สามารถดึงรายละเอียดได้: ' + (res ? res.message : 'Error'));
+        window.App.navigateTo('summary_list');
+      }
+    });
+  }
+};
+</script>

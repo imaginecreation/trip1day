@@ -1,0 +1,170 @@
+<script>
+/**
+ * Js_TripCard.html — Dynamic Trip Card Component & Handlers
+ * Mileage Reimbursement System (v10.1)
+ */
+
+window.TripCardComponent = {
+  /**
+   * Generates unique trip_id string.
+   */
+  generateTripId: function() {
+    return 't-' + Math.random().toString(36).substring(2, 9);
+  },
+
+  /**
+   * Renders HTML markup for a single Trip Card.
+   */
+  renderCardHtml: function(trip, index, totalCards, activeRoutes, selectedSiteId) {
+    var tripNum = index + 1;
+    var isFix = trip.type === 'FIX';
+    var isRoundTrip = trip.trip_type === 'ROUND_TRIP';
+    var showDelete = totalCards > 1;
+
+    // Filter active routes by selectedSiteId
+    var filteredRoutes = [];
+    if (selectedSiteId) {
+      filteredRoutes = activeRoutes.filter(function(r) {
+        return String(r.Site_ID) === String(selectedSiteId);
+      });
+    }
+
+    var routeOptionsHtml = '<option value="">-- เลือกเส้นทางมาตรฐาน --</option>';
+    for (var i = 0; i < filteredRoutes.length; i++) {
+      var r = filteredRoutes[i];
+      var selected = (isFix && String(r.Route_ID) === String(trip.route_id)) ? 'selected' : '';
+      routeOptionsHtml += '<option value="' + r.Route_ID + '" ' + selected + '>' + r.Route_Name + ' (' + r.Distance_KM + ' กม.)</option>';
+    }
+    var customSelected = (!isFix) ? 'selected' : '';
+    routeOptionsHtml += '<option value="CUSTOM" ' + customSelected + '>📍 ระบุเส้นทางเอง (Custom)</option>';
+
+    var badgeHtml = '';
+    if (isFix && isRoundTrip) {
+      badgeHtml = '<span class="badge badge-primary">🔁 ไปกลับ ×2</span>';
+    } else if (!isFix && isRoundTrip) {
+      badgeHtml = '<span class="badge badge-warning">🔁 ไปกลับ</span>';
+    }
+
+    var html = '' +
+    '<div class="trip-card" id="card-' + trip.trip_id + '" data-id="' + trip.trip_id + '">' +
+      '<div class="trip-card-header">' +
+        '<div class="trip-number">เส้นทางที่ ' + tripNum + ' ' + badgeHtml + '</div>' +
+        (showDelete ? '<button type="button" class="btn-icon-del" onclick="TripCardComponent.promptDeleteTrip(\'' + trip.trip_id + '\')">🗑️</button>' : '') +
+      '</div>' +
+
+      // Field 1: Route Selection Dropdown
+      '<div class="form-group">' +
+        '<label>เลือกเส้นทาง ' + (!selectedSiteId ? '<span style="color:#f87171;">(กรุณาเลือก SITE งานก่อน)</span>' : '') + '</label>' +
+        '<select class="form-control" ' + (!selectedSiteId ? 'disabled' : '') + ' onchange="TripCardComponent.handleRouteSelect(\'' + trip.trip_id + '\', this.value)">' +
+          routeOptionsHtml +
+        '</select>' +
+      '</div>' +
+
+      // Field 2 & 3: Origin / Destination
+      '<div style="display: flex; gap: 10px;">' +
+        '<div class="form-group" style="flex: 1;">' +
+          '<label>ต้นทาง</label>' +
+          '<input type="text" class="form-control" value="' + (trip.origin || '') + '" ' + (isFix ? 'readonly' : '') + ' placeholder="สถานที่ต้นทาง" oninput="TripCardComponent.handleInputUpdate(\'' + trip.trip_id + '\', \'origin\', this.value)">' +
+        '</div>' +
+        '<div class="form-group" style="flex: 1;">' +
+          '<label>ปลายทาง</label>' +
+          '<input type="text" class="form-control" value="' + (trip.dest || '') + '" ' + (isFix ? 'readonly' : '') + ' placeholder="สถานที่ปลายทาง" oninput="TripCardComponent.handleInputUpdate(\'' + trip.trip_id + '\', \'dest\', this.value)">' +
+        '</div>' +
+      '</div>' +
+
+      // Field 4: Distance KM
+      '<div class="form-group">' +
+        '<label>ระยะทาง (กม.) ' + (isFix ? '🔒' : '') + '</label>' +
+        '<input type="number" step="0.1" inputmode="decimal" class="form-control" value="' + (trip.km || '') + '" ' + (isFix ? 'readonly' : '') + ' placeholder="0.0" oninput="TripCardComponent.handleInputUpdate(\'' + trip.trip_id + '\', \'km\', this.value)">' +
+        (!isFix ? '<div class="hint-text">กรอกระยะทางรวมตามจริง (รวมขากลับด้วยหากมีเดินทางไปกลับ)</div>' : '') +
+      '</div>' +
+
+      // Field 5: Trip Type Segmented Control (Toggle เที่ยวเดียว / ไปกลับ)
+      '<div class="form-group">' +
+        '<label>ประเภทการเดินทาง</label>' +
+        '<div class="segmented-control">' +
+          '<button type="button" class="segmented-btn ' + (!isRoundTrip ? 'active' : '') + '" onclick="TripCardComponent.handleTripTypeToggle(\'' + trip.trip_id + '\', \'SINGLE\')">เที่ยวเดียว</button>' +
+          '<button type="button" class="segmented-btn ' + (isRoundTrip ? 'active' : '') + '" onclick="TripCardComponent.handleTripTypeToggle(\'' + trip.trip_id + '\', \'ROUND_TRIP\')">ไปกลับ</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+    return html;
+  },
+
+  /**
+   * Event Handler: Route Selection Change
+   */
+  handleRouteSelect: function(tripId, val) {
+    var trip = window.AppState.findTrip(tripId);
+    if (!trip) return;
+
+    if (val === 'CUSTOM') {
+      trip.type = 'CUSTOM';
+      trip.route_id = null;
+      trip.route_name = 'ระบุเอง';
+      trip.origin = '';
+      trip.dest = '';
+      trip.km = '';
+      // Spec v10: Keep trip_type intact across Fix <-> Custom toggles!
+    } else if (val) {
+      var route = window.AppState.findRoute(val);
+      if (route) {
+        trip.type = 'FIX';
+        trip.route_id = route.Route_ID;
+        trip.route_name = route.Route_Name;
+        trip.origin = route.Origin;
+        trip.dest = route.Destination;
+        trip.km = route.Distance_KM;
+        // Spec v10: Keep trip_type intact!
+      }
+    }
+
+    window.TripFormComponent.renderTripsList();
+    window.TripFormComponent.updateSummary();
+  },
+
+  /**
+   * Event Handler: Text / Number Input Changes
+   */
+  handleInputUpdate: function(tripId, field, val) {
+    var trip = window.AppState.findTrip(tripId);
+    if (!trip) return;
+    trip[field] = val;
+    window.TripFormComponent.updateSummary();
+  },
+
+  /**
+   * Event Handler: Trip Type Segmented Control Toggle
+   */
+  handleTripTypeToggle: function(tripId, typeVal) {
+    var trip = window.AppState.findTrip(tripId);
+    if (!trip) return;
+    trip.trip_type = typeVal; // 'SINGLE' or 'ROUND_TRIP'
+    window.TripFormComponent.renderTripsList();
+    window.TripFormComponent.updateSummary();
+  },
+
+  /**
+   * Event Handler: Prompt Modal Delete Confirmation
+   */
+  promptDeleteTrip: function(tripId) {
+    window.AppState.pendingDeleteTripId = tripId;
+    document.getElementById('modal-delete-trip').classList.add('active');
+  },
+
+  /**
+   * Event Handler: Confirm Delete Execution
+   */
+  confirmDeleteTrip: function() {
+    var tripId = window.AppState.pendingDeleteTripId;
+    if (tripId) {
+      window.AppState.removeTrip(tripId);
+      window.TripFormComponent.renderTripsList();
+      window.TripFormComponent.updateSummary();
+    }
+    document.getElementById('modal-delete-trip').classList.remove('active');
+    window.AppState.pendingDeleteTripId = null;
+  }
+};
+</script>

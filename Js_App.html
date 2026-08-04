@@ -1,0 +1,171 @@
+<script>
+/**
+ * Js_App.html — Main Application Store, LIFF Bootstrap & Router
+ * Mileage Reimbursement System (v10.1)
+ */
+
+window.AppState = {
+  lineUserId: 'USER-LOCAL-TEST', // Fallback for local browser testing
+  requesterName: '',
+  plateNo: '',
+  selectedDate: '',
+  selectedSiteId: '',
+  travelPurpose: '',
+  tollFee: 0,
+  parkFee: 0,
+  flatRateFee: 0,
+  selectedApprover: '',
+  currentTxId: null,
+  currentTransactionStatus: 'DRAFT',
+  pendingDeleteTripId: null,
+  pendingNewSiteId: null,
+  trips: [],
+  masterData: null,
+  dailyTransactions: [],
+  currentScreen: 'summary_list',
+
+  resetFormState: function() {
+    this.currentTxId = null;
+    this.currentTransactionStatus = 'DRAFT';
+    this.selectedSiteId = '';
+    this.travelPurpose = '';
+    this.tollFee = 0;
+    this.parkFee = 0;
+    this.flatRateFee = 0;
+
+    // Default 1 Trip Card
+    this.trips = [{
+      trip_id: window.TripCardComponent.generateTripId(),
+      trip_no: 1,
+      type: 'CUSTOM',
+      trip_type: 'SINGLE',
+      route_id: null,
+      route_name: 'ระบุเอง',
+      origin: '',
+      dest: '',
+      km: ''
+    }];
+  },
+
+  loadTransactionDetailIntoState: function(detail) {
+    this.currentTxId = detail.transaction_id;
+    this.requesterName = detail.req_name;
+    this.plateNo = detail.plate_no;
+    this.selectedDate = detail.req_date;
+    this.selectedSiteId = detail.site_id;
+    this.travelPurpose = detail.travel_purpose;
+    this.tollFee = detail.toll_fee;
+    this.parkFee = detail.park_fee;
+    this.flatRateFee = detail.flat_rate_fee;
+    this.selectedApprover = detail.approver;
+    this.currentTransactionStatus = detail.status;
+    this.trips = detail.trip_details || [];
+  },
+
+  findTrip: function(tripId) {
+    for (var i = 0; i < this.trips.length; i++) {
+      if (this.trips[i].trip_id === tripId) return this.trips[i];
+    }
+    return null;
+  },
+
+  findRoute: function(routeId) {
+    var routes = (this.masterData && this.masterData.masterRoutes) ? this.masterData.masterRoutes : [];
+    for (var i = 0; i < routes.length; i++) {
+      if (String(routes[i].Route_ID) === String(routeId)) return routes[i];
+    }
+    return null;
+  },
+
+  removeTrip: function(tripId) {
+    this.trips = this.trips.filter(function(t) { return t.trip_id !== tripId; });
+    // Re-index trip_no
+    for (var i = 0; i < this.trips.length; i++) {
+      this.trips[i].trip_no = i + 1;
+    }
+  }
+};
+
+window.App = {
+  init: function() {
+    console.log('App Initializing...');
+    this.initLiff().then(function() {
+      App.loadMasterData();
+    });
+  },
+
+  initLiff: function() {
+    return new Promise(function(resolve) {
+      if (typeof liff === 'undefined') {
+        console.warn('LINE LIFF SDK not detected. Operating in standalone mode.');
+        resolve();
+        return;
+      }
+
+      var liffId = (window.AppState.masterData && window.AppState.masterData.liffId) ? window.AppState.masterData.liffId : 'YOUR_LIFF_ID';
+      
+      liff.init({ liffId: liffId }).then(function() {
+        if (!liff.isLoggedIn()) {
+          liff.login();
+        } else {
+          liff.getProfile().then(function(profile) {
+            if (profile && profile.userId) {
+              window.AppState.lineUserId = profile.userId;
+              if (profile.displayName) {
+                window.AppState.requesterName = profile.displayName;
+              }
+            }
+            resolve();
+          }).catch(function(e) {
+            console.error('LIFF getProfile Error:', e);
+            resolve();
+          });
+        }
+      }).catch(function(err) {
+        console.warn('LIFF init warning:', err);
+        resolve();
+      });
+    });
+  },
+
+  loadMasterData: function() {
+    var container = document.getElementById('app-screen-container');
+    if (container) container.innerHTML = '<div style="text-align:center; padding: 50px;"><span class="spinner"></span> กำลังโหลดข้อมูลระบบ...</div>';
+
+    window.ApiClient.call('getDataOnLoad', window.AppState.lineUserId).then(function(res) {
+      if (res && res.success && res.data) {
+        window.AppState.masterData = res.data;
+        window.AppState.selectedDate = res.data.today_th;
+
+        if (res.data.userProfile) {
+          window.AppState.requesterName = res.data.userProfile.requester_name || window.AppState.requesterName;
+          window.AppState.plateNo = res.data.userProfile.car_no || window.AppState.plateNo;
+        }
+
+        App.navigateTo('summary_list');
+      } else {
+        if (container) container.innerHTML = '<div class="glass-card" style="text-align:center; color:#f87171;">เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + (res ? res.message : 'Unknown') + '</div>';
+      }
+    });
+  },
+
+  navigateTo: function(screenName) {
+    window.AppState.currentScreen = screenName;
+    var container = document.getElementById('app-screen-container');
+    var stickyBar = document.getElementById('sticky-bar');
+
+    if (screenName === 'summary_list') {
+      if (stickyBar) stickyBar.style.display = 'none';
+      window.DaySummaryListComponent.renderScreen(container);
+    } else if (screenName === 'trip_form') {
+      if (stickyBar) stickyBar.style.display = 'flex';
+      window.TripFormComponent.renderForm(container);
+    }
+  }
+};
+
+// Bootstrap on DOM ready
+document.addEventListener('DOMContentLoaded', function() {
+  window.App.init();
+});
+</script>

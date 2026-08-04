@@ -1,0 +1,75 @@
+<script>
+/**
+ * Js_Validation.html — Frontend Form Validation Utilities
+ * Mileage Reimbursement System (v10.1)
+ */
+
+window.ValidationUtil = {
+  /**
+   * Validates form state before submitting to backend.
+   */
+  validateFormState: function(state) {
+    var errors = [];
+
+    if (!state.site_id) {
+      errors.push({ field: 'site_id', message: 'กรุณาเลือก SITE งาน' });
+    }
+
+    if (!state.approver) {
+      errors.push({ field: 'approver', message: 'กรุณาเลือกผู้อนุมัติ' });
+    }
+
+    if (!state.req_name || !state.req_name.trim()) {
+      errors.push({ field: 'req_name', message: 'กรุณาระบุชื่อผู้ขอเบิก' });
+    }
+
+    if (!state.trips || !Array.isArray(state.trips) || state.trips.length === 0) {
+      errors.push({ field: 'trips', message: 'ต้องมีอย่างน้อย 1 เส้นทางการเดินทาง' });
+    } else {
+      for (var i = 0; i < state.trips.length; i++) {
+        var t = state.trips[i];
+        var cardNo = i + 1;
+
+        if (t.type === 'FIX' && !t.route_id) {
+          errors.push({ field: 'trip_' + t.trip_id, message: 'เส้นทางที่ ' + cardNo + ': กรุณาเลือกเส้นทางมาตรฐาน' });
+        }
+        if (t.type === 'CUSTOM') {
+          if (!t.origin || !t.origin.trim()) {
+            errors.push({ field: 'trip_' + t.trip_id, message: 'เส้นทางที่ ' + cardNo + ': กรุณาระบุต้นทาง' });
+          }
+          if (!t.dest || !t.dest.trim()) {
+            errors.push({ field: 'trip_' + t.trip_id, message: 'เส้นทางที่ ' + cardNo + ': กรุณาระบุปลายทาง' });
+          }
+        }
+
+        var km = parseFloat(t.km);
+        if (isNaN(km) || km <= 0 || km > 500) {
+          errors.push({ field: 'trip_' + t.trip_id, message: 'เส้นทางที่ ' + cardNo + ': ระยะทางต้องมากกว่า 0 และไม่เกิน 500 กม.' });
+        }
+
+        if (t.trip_type !== 'SINGLE' && t.trip_type !== 'ROUND_TRIP') {
+          errors.push({ field: 'trip_' + t.trip_id, message: 'เส้นทางที่ ' + cardNo + ': กรุณาระบุประเภทการเดินทาง (เที่ยวเดียว/ไปกลับ)' });
+        }
+      }
+    }
+
+    return errors;
+  },
+
+  /**
+   * Formats float number to 2 decimal places string.
+   */
+  formatCurrency: function(num) {
+    var val = parseFloat(num || 0);
+    return val.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  },
+
+  /**
+   * Formats distance to 1 decimal place string.
+   */
+  formatKm: function(num) {
+    var val = parseFloat(num || 0);
+    return val.toLocaleString('th-TH', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  }
+};
+</script>

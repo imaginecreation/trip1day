@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ระบบบันทึกเบิกค่าเดินทาง</title>
+
+  <!-- Pinned LINE LIFF SDK version 2.22.4 (2026-07-31) — See Section 5.3 of Spec v10.1 -->
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+  <?!= include('Styles_Main'); ?>
+</head>
+<body>
+
+  <div id="app" class="container">
+    <div id="app-screen-container"></div>
+  </div>
+
+  <!-- Sticky Bottom Summary Bar (Form Screen only) -->
+  <div id="sticky-bar" class="sticky-summary-bar" style="display: none;">
+    <div>
+      <div class="sticky-net-amount" id="sticky-net-amount">0.00 ฿</div>
+      <div class="sticky-km-amount" id="sticky-km-amount">0.0 กม.</div>
+    </div>
+    <button type="button" class="btn btn-primary" style="width: auto; padding: 10px 18px; font-size: 0.9rem;" onclick="TripFormComponent.handleSubmit()">
+      💾 บันทึกข้อมูล
+    </button>
+  </div>
+
+  <!-- Modal: Delete Trip Confirmation -->
+  <div id="modal-delete-trip" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-title">🗑️ ยืนยันการลบเส้นทาง</div>
+      <div class="modal-desc">คุณต้องการลบเส้นทางการเดินทางนี้ใช่หรือไม่?</div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-delete-trip').classList.remove('active')">ยกเลิก</button>
+        <button type="button" class="btn btn-danger" onclick="TripCardComponent.confirmDeleteTrip()">ยืนยันลบ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Confirm Change Site Reset Fix Trips -->
+  <div id="modal-confirm-site" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-title">⚠️ ยืนยันการเปลี่ยน SITE งาน</div>
+      <div class="modal-desc">การเปลี่ยน SITE งานจะล้างเส้นทางมาตรฐาน (Fix) ที่เลือกไว้ทั้งหมดเพื่อความถูกต้อง (การ์ด Custom ไม่ถูกล้าง) ต้องการดำเนินการต่อหรือไม่?</div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-confirm-site').classList.remove('active')">ยกเลิก</button>
+        <button type="button" class="btn btn-primary" onclick="TripFormComponent.confirmSiteChange()">ยืนยันเปลี่ยน</button>
+      </div>
+    </div>
+  </div>
+
+  <?!= include('Js_ApiClient'); ?>
+  <?!= include('Js_Validation'); ?>
+  <?!= include('Js_TripCard'); ?>
+  <?!= include('Js_TripForm'); ?>
+  <?!= include('Js_DaySummaryList'); ?>
+  <?!= include('Js_App'); ?>
+
+</body>
+</html>

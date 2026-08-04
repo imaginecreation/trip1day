@@ -1,0 +1,43 @@
+<script>
+/**
+ * Js_ApiClient.html — Promisified Client for GAS Backend API Calls
+ * Mileage Reimbursement System (v10.1)
+ */
+
+window.ApiClient = {
+  /**
+   * Invokes a server-side GAS function asynchronously with Promise wrapper.
+   */
+  call: function(functionName) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    
+    return new Promise(function(resolve, reject) {
+      if (typeof google === 'undefined' || !google.script || !google.script.run) {
+        console.warn('ApiClient: google.script.run is not available (mock mode / standalone).');
+        resolve({ success: false, error_code: 'ENV_ERROR', message: 'google.script.run is unavailable' });
+        return;
+      }
+
+      var runner = google.script.run
+        .withSuccessHandler(function(response) {
+          resolve(response);
+        })
+        .withFailureHandler(function(error) {
+          console.error('ApiClient Server Error [' + functionName + ']:', error);
+          resolve({
+            success: false,
+            error_code: 'SERVER_ERROR',
+            message: (error && error.message) ? error.message : String(error)
+          });
+        });
+
+      if (typeof runner[functionName] === 'function') {
+        runner[functionName].apply(runner, args);
+      } else {
+        console.error('ApiClient: Function ' + functionName + ' does not exist on server.');
+        resolve({ success: false, error_code: 'NOT_FOUND', message: 'Function ' + functionName + ' not found' });
+      }
+    });
+  }
+};
+</script>
