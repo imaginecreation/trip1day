@@ -37,6 +37,13 @@
   - 2. **ปรับ Label วันที่:** เปลี่ยนคำว่า "วันที่เบิก" ใน Header สรุปประจำวัน เป็น "วันที่เดินทาง" เพื่อให้ตรงกันทั้งระบบ
   - 3. **ปรับ คำแสดงผล ค่ารถ:** ในตารางสรุปยอดเบิก (Transaction Summary Box) เปลี่ยนจาก "ค่ารถเหมา:" เป็น "ค่ารถ:"
   - 4. **App Title ver.2.0:** แสดง Title "ระบบบันทึกเบิกค่าเดินทาง ver.2.0" บนสุดและในส่วน HTML Title / GAS Page Title
-- ฟีเจอร์ "บันทึกข้อมูลแบบแยก Site" และ "ลบข้อมูล (Delete Transaction)" ทำงานได้อย่างสมบูรณ์ผ่าน UAT Load Testing
-- บั๊กซ่อนปุ่มลบ (เมื่อสถานะ APPROVED) ใช้งานได้จริง
 - พร้อมสำหรับการพัฒนาต่อยอดเวอร์ชันถัดไป (v2.1, v2.2, ...)
+
+## 🔗 6. การเชื่อมโยง Cache ระหว่างโปรเจกต์ (Cross-Project Cache Sharing)
+เมื่อนำโครงสร้างฐานข้อมูล (Google Sheets) นี้ไปใช้ร่วมกับอีกโปรเจกต์หนึ่ง เช่น **`trip1day_approve` (แอปผู้อนุมัติ)**:
+1. **การดึงโมดูล Cache ไปใช้:** โปรเจกต์ใหม่สามารถคัดลอกไฟล์ `Repository_Cache.js` (รวมระบบ Chunking + LockService) ไปใช้งานได้ทันทีเพื่อเร่งความเร็วในการอ่านข้อมูล
+2. **การทำให้ Cache สดใหม่อยู่เสมอ (Cross-Script Invalidation):**
+   - เนื่องจาก `CacheService.getScriptCache()` แยกตาม GAS Script ID
+   - เมื่อฝั่งแอปผู้อนุมัติ (`trip1day_approve`) มีการอนุมัติ/ปฏิเสธรายการลง Google Sheet ให้ส่ง HTTP POST มาที่ GAS Web App ของ `trip1day` ด้วย payload:
+     `{ action: "clearCache", key: "TRANSACTIONS_ALL" }`
+   - ระบบ `trip1day` จะทำการล้าง Cache `TRANSACTIONS_ALL` ทันที ทำให้ทั้งฝั่งผู้ขอเบิกและผู้อนุมัติเห็นข้อมูลสถานะที่ตรงกัน 100% โดยไม่ต้องรอหมดอายุ 10 นาที

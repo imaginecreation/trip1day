@@ -110,6 +110,12 @@ function handleApiRequest(action, data) {
       return deleteTransaction(txId);
     }
 
+    case 'clearCache': {
+      let key = (data && data.key) ? data.key : 'TRANSACTIONS_ALL';
+      Repository_Cache.clearCache(key);
+      return Util_Response.buildSuccess({ message: 'Cache ' + key + ' cleared successfully.' });
+    }
+
     case 'initDatabase':
       return initDatabase();
 
