@@ -6,5 +6,5 @@
  */
 
 if (typeof window !== 'undefined') {
-  window.GAS_API_URL = "https://script.google.com/macros/s/AKfycbya3fPSmvww1tHK7HEV8FTp10RjKopFCKZ1M9ppCSDkGVAspWuKdsMfypL58ppj378k/exec";
+  window.GAS_API_URL = "https://script.google.com/macros/s/AKfycbzoNxwgdAc_bPs0_iGRdJZcxAF00GRGTnn5KSV3tyeUnUeSVulbTWrzh7JpSYc2wlYykQ/exec";
 }
