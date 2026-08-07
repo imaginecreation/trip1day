@@ -4,7 +4,7 @@
  */
 
 const CONFIG = {
-  SPREADSHEET_ID: '1CNTlNGn7w5rRDWundhnNgFaUII9kQvAEBUmWe0lpWGw',
+  SPREADSHEET_ID: '1vzNmd49BiuFT7e-gssRPiPNSoSQ6Q1Biyf9cRiiw57s',
   LIFF_ID: '2009016720-k0zSXOrx', // Replace with actual LIFF ID when deployed
   TIMEZONE: 'Asia/Bangkok',
   RETENTION_DAYS: 10,
