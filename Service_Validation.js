@@ -76,8 +76,8 @@ const Service_Validation = {
       }
 
       const km = Number(trip.km);
-      if (isNaN(km) || km <= 0 || km > 500) {
-        return Util_Response.buildError('VALIDATION_ERROR', 'ระยะทาง (กม.) ในเส้นทางที่ ' + tripNum + ' ต้องมากกว่า 0 และไม่เกิน 500 กม.');
+      if (isNaN(km) || km <= 0 || km > 1000) {
+        return Util_Response.buildError('VALIDATION_ERROR', 'ระยะทาง (กม.) ในเส้นทางที่ ' + tripNum + ' ต้องมากกว่า 0 และไม่เกิน 1000 กม.');
       }
 
       if (trip.type === 'FIX') {
