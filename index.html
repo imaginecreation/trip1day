@@ -547,7 +547,7 @@ window.ValidationUtil = {
           if (!t.dest || !t.dest.trim()) errors.push({ field: 'trip_' + t.trip_id, message: 'เส้นทางที่ ' + cardNo + ': กรุณาระบุปลายทาง' });
         }
         var km = parseFloat(t.km);
-        if (isNaN(km) || km <= 0 || km > 500) errors.push({ field: 'trip_' + t.trip_id, message: 'เส้นทางที่ ' + cardNo + ': ระยะทางต้องมากกว่า 0 และไม่เกิน 500 กม.' });
+        if (isNaN(km) || km <= 0 || km > 2000) errors.push({ field: 'trip_' + t.trip_id, message: 'เส้นทางที่ ' + cardNo + ': ระยะทางต้องมากกว่า 0 และไม่เกิน 2000 กม.' });
         if (t.trip_type !== 'SINGLE' && t.trip_type !== 'ROUND_TRIP') errors.push({ field: 'trip_' + t.trip_id, message: 'เส้นทางที่ ' + cardNo + ': กรุณาระบุประเภทการเดินทาง (เที่ยวเดียว/ไปกลับ)' });
       }
     }
